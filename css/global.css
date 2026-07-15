@@ -1,0 +1,144 @@
+/* ==========================================================================
+   Global base styles — reset, typography, links, focus states.
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  line-height: var(--lh-tight);
+  margin: 0 0 var(--space-sm);
+  letter-spacing: 0.01em;
+}
+
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+
+p {
+  margin: 0 0 var(--space-sm);
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--color-accent);
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Section label / eyebrow style used across the site */
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-accent);
+  margin-bottom: var(--space-sm);
+}
+
+/* Visible focus states for keyboard users */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+/* Skip link for keyboard/screen reader users */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  background: var(--color-deep-navy);
+  color: var(--color-warm-off-white);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-sm);
+  z-index: 100;
+  transition: top var(--transition-base);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Reduced motion: respect user preference site-wide */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+  Scroll-reveal, fail-safe by default.
+
+  Content must never depend on JavaScript to become visible. `.reveal` is
+  fully visible on its own. Only once js/main.js confirms IntersectionObserver
+  is available does it add `.reveal--pending` (via setupScrollReveal), which
+  is what actually hides the element before animating it in. If a script
+  fails to load, throws an error, or JS is disabled entirely, every section
+  still renders normally — the site just loses the entrance animation.
+*/
+.reveal {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal.reveal--pending {
+  opacity: 0;
+  transform: translateY(var(--reveal-distance));
+  transition: opacity var(--transition-slow), transform var(--transition-slow);
+}
+
+.reveal.reveal--pending.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal.reveal--pending {
+    opacity: 1;
+    transform: none;
+  }
+}

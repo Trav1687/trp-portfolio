@@ -1,0 +1,60 @@
+/* ==========================================================================
+   TRP Brand Tokens
+   Single source of truth for colour, type, spacing, and motion values.
+   ========================================================================== */
+
+:root {
+  /* Brand colours */
+  --color-deep-navy: #14213D;
+  --color-trail-orange: #FCA311;
+  --color-warm-off-white: #F8F6F0;
+  --color-slate-blue-grey: #4F5D75;
+  --color-soft-sand: #D8CBB5;
+  --color-charcoal: #1F2421;
+
+  /* Semantic colour roles */
+  --color-bg: var(--color-warm-off-white);
+  --color-bg-alt: #ffffff;
+  --color-text: var(--color-deep-navy);
+  --color-text-muted: var(--color-slate-blue-grey);
+  --color-accent: var(--color-trail-orange);
+  --color-border: var(--color-soft-sand);
+  --color-inverse-bg: var(--color-deep-navy);
+  --color-inverse-text: var(--color-warm-off-white);
+
+  /* Typography */
+  --font-display: "Eurostile Extended", "Archivo Expanded", "Montserrat", system-ui, sans-serif;
+  --font-body: "Inter", "IBM Plex Sans", "Montserrat", system-ui, sans-serif;
+
+  --fs-h1: clamp(2.25rem, 5vw + 1rem, 4.25rem);
+  --fs-h2: clamp(1.75rem, 3vw + 1rem, 2.75rem);
+  --fs-h3: clamp(1.25rem, 1.5vw + 1rem, 1.65rem);
+  --fs-body: clamp(1rem, 0.3vw + 0.95rem, 1.125rem);
+  --fs-small: 0.875rem;
+  --fs-label: 0.8rem;
+
+  --lh-tight: 1.15;
+  --lh-normal: 1.5;
+  --lh-loose: 1.7;
+
+  /* Spacing */
+  --space-section: clamp(4rem, 8vw, 8rem);
+  --space-card: clamp(1.25rem, 3vw, 2rem);
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+
+  /* Layout */
+  --container-width: 1200px;
+  --container-padding: clamp(1.25rem, 5vw, 3rem);
+  --radius-card: 1.25rem;
+  --radius-sm: 0.5rem;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --transition-base: 180ms ease;
+  --transition-slow: 420ms ease;
+  --reveal-distance: 24px;
+}

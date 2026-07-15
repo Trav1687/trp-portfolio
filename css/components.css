@@ -1,0 +1,293 @@
+/* ==========================================================================
+   Components — buttons, route markers, project cards, process steps,
+   skill groups, capability cards.
+   ========================================================================== */
+
+/* ---- Buttons -------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: var(--fs-small);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform var(--transition-base), background var(--transition-base), color var(--transition-base), border-color var(--transition-base);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn--primary {
+  background: var(--color-accent);
+  color: var(--color-deep-navy);
+}
+
+.btn--primary:hover {
+  background: #e6940a;
+}
+
+.btn--secondary {
+  background: transparent;
+  color: var(--color-deep-navy);
+  border-color: var(--color-deep-navy);
+}
+
+.btn--secondary:hover {
+  background: var(--color-deep-navy);
+  color: var(--color-warm-off-white);
+}
+
+.btn--on-dark {
+  border-color: var(--color-warm-off-white);
+  color: var(--color-warm-off-white);
+}
+
+.btn--on-dark:hover {
+  background: var(--color-warm-off-white);
+  color: var(--color-deep-navy);
+}
+
+.btn--disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--disabled:hover,
+.btn[aria-disabled="true"]:hover {
+  transform: none;
+}
+
+/* Small note attached to a placeholder button */
+.placeholder-note {
+  display: block;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* ---- Route marker / wayfinding accents ------------------------------------- */
+
+.route-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-deep-navy);
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: var(--fs-small);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.route-marker::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border: 1px solid var(--color-accent);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.route-line {
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-accent), transparent);
+  width: 100%;
+}
+
+/* ---- Section heading pattern ----------------------------------------------- */
+
+.section-heading {
+  max-width: 40rem;
+  margin-bottom: var(--space-xl);
+}
+
+/* ---- Project card ----------------------------------------------------------- */
+
+.project-card {
+  display: grid;
+  gap: var(--space-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .project-card {
+    grid-template-columns: 1fr 1.2fr;
+    align-items: stretch;
+  }
+
+  .project-card:nth-child(even) .project-card__media {
+    order: 2;
+  }
+}
+
+.project-card__media {
+  position: relative;
+  background: var(--color-charcoal);
+}
+
+.project-card__media img {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  object-fit: cover;
+}
+
+.project-card__body {
+  padding: var(--space-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.project-card__number {
+  font-family: var(--font-display);
+  color: var(--color-accent);
+  font-size: var(--fs-small);
+  letter-spacing: 0.08em;
+}
+
+.project-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: var(--space-xs);
+}
+
+.project-card__tag {
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-slate-blue-grey);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 0.2rem 0.7rem;
+}
+
+.project-card__proof-list {
+  display: grid;
+  gap: 0.4rem;
+  margin: var(--space-xs) 0 var(--space-sm);
+}
+
+.project-card__proof-list li {
+  position: relative;
+  padding-left: 1.1rem;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
+
+.project-card__proof-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 6px;
+  height: 6px;
+  background: var(--color-accent);
+  border-radius: 50%;
+}
+
+.project-card__cta {
+  margin-top: auto;
+}
+
+/* ---- Capability card (What I Do) ------------------------------------------- */
+
+.capability-card {
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.capability-card__index {
+  font-family: var(--font-display);
+  color: var(--color-accent);
+  font-size: var(--fs-small);
+}
+
+.capability-card p {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  margin-bottom: 0;
+}
+
+/* ---- Process step ----------------------------------------------------------- */
+
+.process-step {
+  display: flex;
+  gap: var(--space-md);
+  position: relative;
+  flex: 1;
+}
+
+.process-step__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.process-step__title {
+  font-size: var(--fs-h3);
+  margin-bottom: 0;
+}
+
+.process-step p {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  margin-bottom: 0;
+}
+
+@media (min-width: 960px) {
+  .process-step {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ---- Skill group -------------------------------------------------------------- */
+
+.skill-group {
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-card);
+}
+
+.skill-group__title {
+  font-size: var(--fs-h3);
+  margin-bottom: var(--space-sm);
+}
+
+.skill-group__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.skill-group__list li {
+  font-size: var(--fs-small);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 0.3rem 0.85rem;
+  color: var(--color-text);
+}

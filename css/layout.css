@@ -1,0 +1,416 @@
+/* ==========================================================================
+   Layout — container, section rhythm, header/nav, grid patterns.
+   ========================================================================== */
+
+.container {
+  width: 100%;
+  max-width: var(--container-width);
+  margin-inline: auto;
+  padding-inline: var(--container-padding);
+}
+
+section {
+  padding-block: var(--space-section);
+}
+
+/* ---- Header / Nav ------------------------------------------------------ */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  /* Dark header is the primary direction now — see FIX/summary notes. */
+  background: rgba(20, 33, 61, 0.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--color-slate-blue-grey);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--space-sm);
+}
+
+.site-header__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.site-header__logo img {
+  height: 28px;
+  width: auto;
+}
+
+.main-nav {
+  display: none;
+}
+
+.main-nav__list {
+  display: flex;
+  /* Six items now that Skills is included — keep the gap responsive so the
+     nav doesn't feel cramped right at the 860px breakpoint. */
+  gap: clamp(1rem, 2vw, 2.5rem);
+  align-items: center;
+}
+
+.main-nav__link {
+  font-family: var(--font-display);
+  font-size: var(--fs-small);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  color: var(--color-warm-off-white);
+  padding-block: var(--space-xs);
+  border-bottom: 2px solid transparent;
+  transition: border-color var(--transition-base), color var(--transition-base);
+}
+
+.main-nav__link:hover,
+.main-nav__link.is-active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: 1px solid var(--color-slate-blue-grey);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.nav-toggle__bar,
+.nav-toggle__bar::before,
+.nav-toggle__bar::after {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--color-warm-off-white);
+  position: relative;
+  transition: transform var(--transition-base);
+}
+
+.nav-toggle__bar::before {
+  position: absolute;
+  top: -6px;
+}
+
+.nav-toggle__bar::after {
+  position: absolute;
+  top: 6px;
+}
+
+.mobile-nav {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--container-padding) var(--space-lg);
+  background: var(--color-deep-navy);
+  border-bottom: 1px solid var(--color-slate-blue-grey);
+}
+
+.mobile-nav.is-open {
+  display: flex;
+}
+
+.mobile-nav__link {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: var(--fs-small);
+  padding-block: var(--space-xs);
+  text-decoration: none;
+  color: var(--color-warm-off-white);
+}
+
+@media (min-width: 860px) {
+  .main-nav {
+    display: block;
+  }
+
+  .nav-toggle,
+  .mobile-nav {
+    display: none !important;
+  }
+}
+
+/* ---- Hero --------------------------------------------------------------- */
+/*
+  Dark hero is the primary direction (approved over the light hero). Deep
+  Navy background, Warm Off-White text, Trail Orange accents/CTA. Kept as
+  plain rules (not a toggle-able theme) since this is now the site default.
+*/
+
+.hero {
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+  position: relative;
+  overflow: hidden;
+  background: var(--color-deep-navy);
+  color: var(--color-warm-off-white);
+}
+
+@media (min-width: 960px) {
+  .hero {
+    padding-block: clamp(5rem, 10vw, 8rem);
+  }
+}
+
+/* Restrained background grid — structure, not graph paper. Very low
+   opacity, generous spacing, so it reads as texture from a normal viewing
+   distance rather than a visible pattern. */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(216, 203, 181, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(216, 203, 181, 0.045) 1px, transparent 1px);
+  background-size: 72px 72px;
+  pointer-events: none;
+}
+
+.hero__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-xl);
+  align-items: center;
+}
+
+.hero__copy {
+  max-width: 42rem;
+}
+
+.hero h1 {
+  /* A touch looser than the global tight heading line-height so the
+     three-line mobile wrap doesn't feel cramped, while staying tight and
+     confident on desktop. */
+  line-height: 1.22;
+}
+
+@media (min-width: 640px) {
+  .hero h1 {
+    line-height: var(--lh-tight);
+  }
+}
+
+.hero__role {
+  font-size: var(--fs-h3);
+  color: var(--color-soft-sand);
+  margin-bottom: var(--space-md);
+}
+
+.hero__supporting {
+  max-width: 38rem;
+  color: var(--color-soft-sand);
+  font-size: var(--fs-body);
+  line-height: var(--lh-loose);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+/* The secondary CTA is a transparent/navy-border button by default
+   (components.css) — on the dark hero it needs a light outline instead. */
+.hero .btn--secondary {
+  color: var(--color-warm-off-white);
+  border-color: var(--color-warm-off-white);
+}
+
+.hero .btn--secondary:hover {
+  background: var(--color-warm-off-white);
+  color: var(--color-deep-navy);
+}
+
+.hero__visual {
+  position: relative;
+  z-index: 1;
+  /* Mobile: constrained, centered, with clear top margin so it reads as an
+     intentional closing element under the buttons rather than something
+     that got cut off at the bottom of the section. */
+  max-width: 300px;
+  min-height: 200px;
+  margin: var(--space-lg) auto 0;
+}
+
+@media (min-width: 960px) {
+  .hero__visual {
+    max-width: none;
+    min-height: 260px;
+    margin: 0;
+  }
+
+  .hero__grid {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+}
+
+/* ---- Selected Peaks ------------------------------------------------------ */
+
+.peaks {
+  background: var(--color-bg-alt);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.peaks__intro {
+  max-width: 34rem;
+  margin-bottom: var(--space-xl);
+}
+
+.peaks__list {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 960px) {
+  .peaks__layout {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: var(--space-xl);
+    align-items: start;
+  }
+
+  .peaks__intro {
+    position: sticky;
+    top: 6rem;
+    margin-bottom: 0;
+  }
+}
+
+/* ---- What I Do ------------------------------------------------------------ */
+
+.capability-grid {
+  display: grid;
+  gap: var(--space-card);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .capability-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1080px) {
+  .capability-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ---- Process --------------------------------------------------------------- */
+
+.process-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  position: relative;
+}
+
+.process-timeline::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  background: var(--color-border);
+}
+
+@media (min-width: 960px) {
+  .process-timeline {
+    flex-direction: row;
+    gap: var(--space-md);
+  }
+
+  .process-timeline::before {
+    left: 0;
+    right: 0;
+    top: 19px;
+    bottom: auto;
+    height: 2px;
+    width: auto;
+  }
+}
+
+/* ---- Tools and Skills -------------------------------------------------------- */
+
+.skills-grid {
+  display: grid;
+  gap: var(--space-lg);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .skills-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1080px) {
+  .skills-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---- About ---------------------------------------------------------------------- */
+
+.about__inner {
+  max-width: 46rem;
+}
+
+/* ---- Contact / Footer ------------------------------------------------------------ */
+
+.contact {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+}
+
+.contact__inner {
+  max-width: 36rem;
+}
+
+.contact__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.site-footer {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+  border-top: 1px solid rgba(248, 246, 240, 0.15);
+  padding-block: var(--space-lg);
+}
+
+.site-footer__inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+@media (min-width: 720px) {
+  .site-footer__inner {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}

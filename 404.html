@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Not Found | Travis Peakman</title>
+  <meta name="robots" content="noindex, follow" />
+
+  <link rel="icon" type="image/svg+xml" href="assets/logos/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/logos/favicon-32x32.png" />
+  <link rel="apple-touch-icon" href="assets/logos/apple-touch-icon.png" />
+
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+  <style>
+    .not-found {
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      max-width: 36rem;
+      margin-inline: auto;
+      padding-block: var(--space-section);
+    }
+
+    .not-found .route-marker {
+      margin-bottom: var(--space-md);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="container not-found">
+      <span class="route-marker" aria-hidden="true">?</span>
+      <span class="eyebrow">Off the Route</span>
+      <h1>Page Not Found</h1>
+      <p>
+        The page you're looking for doesn't exist, or the link may be out of date. Let's get
+        you back on the path.
+      </p>
+      <a class="btn btn--primary" href="index.html">Back to Home</a>
+    </div>
+  </main>
+</body>
+</html>

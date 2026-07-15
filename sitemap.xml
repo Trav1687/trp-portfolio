@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TODO (before launch): replace PLACEHOLDER-DOMAIN.com with the final domain.
+
+  Note: privacy.html is intentionally left out of this sitemap because it is
+  set to noindex (see the robots meta tag in privacy.html). If that decision
+  changes, remove noindex there before adding the page back here.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://PLACEHOLDER-DOMAIN.com/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
