@@ -169,16 +169,108 @@ section {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
   background-image:
-    linear-gradient(rgba(216, 203, 181, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(216, 203, 181, 0.045) 1px, transparent 1px);
-  background-size: 72px 72px;
+    linear-gradient(rgba(216, 203, 181, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(216, 203, 181, 0.035) 1px, transparent 1px);
+  background-size: 88px 88px;
   pointer-events: none;
+}
+
+/* Full-bleed illustrated scene — raster asset, applied as a CSS background
+   rather than an <img> or inline <svg> (see the TODO comment on the
+   .hero__scene element in index.html: the asset isn't placed yet, so this
+   renders empty and the hero falls back to the plain Deep Navy background
+   below, never a broken-image icon). Sits above the background grid, below
+   the dark overlay and the real text content.
+
+   background-position favours the right side of the image, where the
+   mountain/route/peak/UI-panel story lives — the quieter left portion of
+   the image is what gets cropped away first as the hero gets narrower or
+   shorter, same intent as the previous SVG's preserveAspectRatio trick, but
+   expressed with a plain cover + position rule since this is now a normal
+   background image. */
+.hero__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+  background-image: url("../assets/images/hero/trp-hero-scene-wide.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: right center;
+}
+
+/* Dark gradient overlay — solid Deep Navy on the left (protects text
+   contrast) fading toward more transparent on the right (lets the scene's
+   detail show through). This is what actually keeps the hero readable
+   regardless of what the scene is doing underneath. */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(20, 33, 61, 0.97) 0%,
+    rgba(20, 33, 61, 0.9) 30%,
+    rgba(20, 33, 61, 0.55) 60%,
+    rgba(20, 33, 61, 0.25) 100%
+  );
+}
+
+/* Mobile: shift the focal point further right and down so the crop avoids
+   slicing awkwardly through the figure or the route path (the full scene
+   is much wider than it is tall, so a narrow viewport otherwise tends to
+   show a random vertical strip of mid-mountain with no story to it).
+   "right bottom" keeps the peak/route/panels area anchored while cropping
+   away the quiet left/top first. On top of that, darken the overlay more
+   evenly so a smaller, more cropped scene doesn't compete with the text. */
+@media (max-width: 639px) {
+  .hero__scene {
+    background-position: right bottom;
+  }
+
+  .hero::after {
+    background: rgba(20, 33, 61, 0.85);
+  }
+}
+
+/* Wide desktop (1600px+): `cover` keeps scaling the image wider as the
+   viewport widens, but the hero's height stays roughly fixed past ~1280px
+   (see the clamp() on .hero padding above) — so past a certain width,
+   `cover` is forced to zoom in further just to fill the extra width,
+   stretching the mountain/route/panel grouping thinner and pushing it
+   further from the text than the composition that reads well on a
+   standard desktop. Freeze the scale here instead: size the image by
+   height only (auto height driven, no longer led by container width) so
+   its rendered width stops growing with the viewport. Anchored right, so
+   any extra width beyond that just becomes more quiet dark space on the
+   left — which suits the design anyway — rather than the scene stretching
+   into it. */
+@media (min-width: 1600px) {
+  .hero__scene {
+    background-size: auto 100%;
+    background-position: right center;
+  }
+}
+
+/* Ultrawide (1900px+): hold the same frozen scale/position as the 1600px
+   tier. Kept as its own query (rather than folded into the 1600px rule)
+   so the two can be tuned independently after visual testing without
+   touching the 1600px behaviour. */
+@media (min-width: 1900px) {
+  .hero__scene {
+    background-size: auto 100%;
+    background-position: right center;
+  }
 }
 
 .hero__grid {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   display: grid;
   gap: var(--space-xl);
   align-items: center;
@@ -233,28 +325,11 @@ section {
   color: var(--color-deep-navy);
 }
 
-.hero__visual {
-  position: relative;
-  z-index: 1;
-  /* Mobile: constrained, centered, with clear top margin so it reads as an
-     intentional closing element under the buttons rather than something
-     that got cut off at the bottom of the section. */
-  max-width: 300px;
-  min-height: 200px;
-  margin: var(--space-lg) auto 0;
-}
-
-@media (min-width: 960px) {
-  .hero__visual {
-    max-width: none;
-    min-height: 260px;
-    margin: 0;
-  }
-
-  .hero__grid {
-    grid-template-columns: 1.1fr 0.9fr;
-  }
-}
+/* Note: the old .hero__visual boxed-panel treatment (right-column framed
+   route graphic) has been removed — superseded by the full-bleed
+   .hero__scene background layer above. hero__grid is now effectively
+   single-column (just hero__copy); no grid-template-columns split needed
+   since there's no second grid item anymore. */
 
 /* ---- Selected Peaks ------------------------------------------------------ */
 
