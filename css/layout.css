@@ -364,6 +364,35 @@ section {
   }
 }
 
+/* 1080px+: the featured card (Mountainside Millwork, see js/data.js'
+   `featured` flag) spans full width above a 2-column grid of the
+   remaining four projects. Below this width the list stays the single
+   stacked column it already was — deliberately not attempting a
+   2-column grid at tablet widths, where two of the side-by-side
+   image/body cards would feel cramped. */
+@media (min-width: 1080px) {
+  .peaks__list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .peaks__list .project-card--featured {
+    grid-column: 1 / -1;
+  }
+
+  /* The side-by-side image/body split (see .project-card in
+     components.css) suits a full-width single-column card; two of those
+     side by side would squeeze both the image and the text column too
+     tight, so standard cards in the 2-column grid go back to a stacked
+     image-on-top layout instead. */
+  .peaks__list .project-card:not(.project-card--featured) {
+    grid-template-columns: 1fr;
+  }
+
+  .peaks__list .project-card:not(.project-card--featured) .project-card__media {
+    order: initial;
+  }
+}
+
 /* ---- What I Do ------------------------------------------------------------ */
 
 .capability-grid {

@@ -12,6 +12,7 @@ const projects = [
   {
     number: "01",
     title: "Mountainside Millwork",
+    featured: true,
     tags: ["Client Website", "Angular", "Responsive Design", "Business Presence"],
     description:
       "A real client website for a custom millwork business, built to create a clear online presence, explain services, and make contact simple.",

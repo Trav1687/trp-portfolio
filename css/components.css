@@ -147,6 +147,55 @@
   object-fit: cover;
 }
 
+/* Label over the featured card's image, sourced from the project's own
+   first tag (e.g. "Client Website") — no invented copy, just a more
+   visible presentation of data that's already in js/data.js. */
+.project-card__badge {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  z-index: 1;
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-deep-navy);
+  background: var(--color-accent);
+  border-radius: var(--radius-pill);
+  padding: 0.3rem 0.85rem;
+}
+
+/* Featured card (the one project with `featured: true` in js/data.js —
+   currently Mountainside Millwork, the one real client project): a larger
+   image and slightly heavier type so it reads as the section's strongest
+   proof piece. Layout/typography only — no new claims or content beyond
+   what's already in the data. */
+.project-card--featured {
+  border-color: var(--color-accent);
+}
+
+.project-card--featured .project-card__media img {
+  min-height: 280px;
+}
+
+.project-card--featured .project-card__number {
+  font-size: var(--fs-h3);
+}
+
+.project-card--featured h3 {
+  font-size: var(--fs-h2);
+}
+
+@media (min-width: 960px) {
+  .project-card--featured {
+    grid-template-columns: 1.2fr 1fr;
+  }
+
+  .project-card--featured .project-card__media img {
+    min-height: 360px;
+  }
+}
+
 .project-card__body {
   padding: var(--space-card);
   display: flex;
@@ -168,42 +217,70 @@
   margin-bottom: var(--space-xs);
 }
 
+/* Stronger tag contrast: Deep Navy text on a tinted panel background reads
+   clearly against the card's Warm Off-White surface, rather than the
+   previous muted Slate Blue Grey text that read as washed out. */
 .project-card__tag {
   font-size: var(--fs-label);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-slate-blue-grey);
+  color: var(--color-deep-navy);
+  background: var(--color-bg-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
   padding: 0.2rem 0.7rem;
 }
 
-.project-card__proof-list {
-  display: grid;
+/* Proof points as compact, scannable chips instead of a vertical bullet
+   list — same data (proofPoints in js/data.js), easier to scan across
+   five cards. */
+.project-card__proof-chips {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
   margin: var(--space-xs) 0 var(--space-sm);
 }
 
-.project-card__proof-list li {
+.project-card__proof-chips li {
   position: relative;
-  padding-left: 1.1rem;
   font-size: var(--fs-small);
-  color: var(--color-text-muted);
+  color: var(--color-text);
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 0.3rem 0.75rem 0.3rem 1.6rem;
 }
 
-.project-card__proof-list li::before {
+.project-card__proof-chips li::before {
   content: "";
   position: absolute;
-  left: 0;
-  top: 0.5em;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
   width: 6px;
   height: 6px;
   background: var(--color-accent);
   border-radius: 50%;
 }
 
-.project-card__cta {
+/* Quiet status line, replacing the previous disabled-button +
+   placeholder-note pair on every card — five identical greyed-out
+   buttons in a row read as unfinished; a plain status line does not. */
+.project-card__status {
   margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--fs-small);
+  color: var(--color-text-muted);
+}
+
+.project-card__status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-slate-blue-grey);
+  flex-shrink: 0;
 }
 
 /* ---- Capability card (What I Do) ------------------------------------------- */
