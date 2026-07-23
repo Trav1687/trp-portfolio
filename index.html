@@ -123,37 +123,47 @@
     <section id="top" class="hero">
       <!--
         Full-bleed background scene, purely decorative (aria-hidden).
-        Illustrated raster asset (not an inline SVG) — see
-        assets/images/hero/trp-hero-scene-wide.png. Composition: quiet/dark
-        left side behind the text, mountain/route/peak/UI-panel scene on the
-        right, small silhouetted figure for human scale (not an
-        outdoor/adventure figure — a scale reference only). Applied via CSS
-        background-image (see .hero__scene in css/layout.css) rather than an
-        <img> or inline <svg> so it stays out of the accessibility tree
-        automatically and so background-position can favour the right side
-        at every breakpoint with a single, simple rule (cover + position),
-        rather than needing viewBox/preserveAspectRatio tricks.
+        Illustrated raster asset — assets/images/hero/trp-hero-scene-wide.webp,
+        applied via CSS background-image (see .hero__scene in
+        css/layout.css). Composition: quiet/dark left side behind the text,
+        mountain/route/peak/UI-panel scene on the right, small silhouetted
+        figure for human scale (not an outdoor/adventure figure — a scale
+        reference only).
 
-        TODO (placeholder asset): trp-hero-scene-wide.png has not been
-        placed in assets/images/hero/ yet. Until it exists, this element
-        renders as empty and the hero falls back to the plain Deep Navy
-        background + gradient overlay below — never a broken image icon.
+        The load-in glow (route lighting up, then the peak pulsing) is
+        built with CSS pseudo-elements on .hero__scene — see
+        .hero__scene::after and ::before in css/layout.css — rather than a
+        separately traced overlay. ::after shows only the route/waypoint
+        pixels (assets/images/hero/trp-hero-route-mask.png, a derived
+        asset with everything else made transparent) through a circular
+        mask that grows outward from the route's bottom near the person's
+        feet until it's past the peak. ::before is a single small radial
+        glow pulsing in near the peak marker once the reveal arrives.
+        setupHeroRouteDraw() in js/main.js measures the real rendered hero
+        box at load and drives the circle's growth frame by frame — see
+        that function's comment for why it's done at runtime rather than
+        as a plain CSS transition.
       -->
       <div class="hero__scene" aria-hidden="true"></div>
 
       <div class="container hero__grid">
         <div class="hero__copy reveal">
-          <span class="eyebrow">TRP / Travis Peakman</span>
-          <p class="hero__role">Design-minded front-end developer &amp; digital problem-solver</p>
-          <h1>Turning unclear ideas into useful digital solutions.</h1>
+          <span class="eyebrow">Travis Peakman</span>
+          <p class="hero__role">Design-minded front-end developer</p>
+          <h1>Turning unclear ideas into digital solutions.</h1>
           <p class="hero__supporting">
-            I help shape rough ideas, business needs, and digital problems into clear websites,
-            apps, tools, and digital experiences through design thinking, front-end development,
-            and practical problem-solving.
+            I take messy ideas and digital problems and turn them into websites, apps,
+            and tools that actually work - from first sketch to shipped product.
           </p>
           <div class="hero__actions">
-            <a class="btn btn--primary" href="#work">View My Work</a>
-            <a class="btn btn--secondary" href="#contact">Talk Through an Idea</a>
+            <span class="btn__wrap btn__wrap--primary">
+              <a class="btn btn--primary btn--waypoint" href="#work">View My Work</a>
+              <svg class="btn__ring" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path></path></svg>
+            </span>
+            <span class="btn__wrap btn__wrap--secondary">
+              <a class="btn btn--secondary btn--waypoint" href="#contact">Talk Through an Idea</a>
+              <svg class="btn__ring" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path></path></svg>
+            </span>
           </div>
         </div>
       </div>
@@ -164,7 +174,7 @@
       <div class="container">
         <div class="peaks__layout">
           <div class="peaks__intro reveal">
-            <span class="eyebrow">Selected Work</span>
+            <!-- <span class="eyebrow">Selected Work</span> -->
             <h2>Selected Peaks</h2>
             <p>
               A few projects that show how I think, build, organize, and solve different kinds

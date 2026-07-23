@@ -196,10 +196,167 @@ section {
   z-index: 1;
   pointer-events: none;
   overflow: hidden;
-  background-image: url("../assets/images/hero/trp-hero-scene-wide.png");
+  background-image: url("../assets/images/hero/trp-hero-scene-wide.webp");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: right center;
+}
+
+/* Load-in glow, built as pseudo-elements on .hero__scene rather than a
+   separately traced overlay (see the comment on .hero__scene in
+   index.html for why). ::after uses trp-hero-route-mask.png — a derived
+   asset containing ONLY the route/waypoint-dot/peak-marker pixels from
+   the original image, with everything else made transparent. Because
+   there's nothing else in this layer, brightening it can't lighten the
+   mountains or background the way a blended duplicate of the full image
+   did — there's simply nothing else there to brighten.
+
+   Because this duplicates the same image's framing, it MUST mirror
+   .hero__scene's own background-size/background-position at every
+   breakpoint (see the mobile and wide-desktop overrides below) — if it
+   didn't, it would drift out of registration.
+
+   trp-hero-route-mask.png was generated from trp-hero-scene-wide.png by
+   isolating pixels where the red channel notably exceeds the blue channel
+   (i.e. warm/orange-toned) and fading in alpha across that threshold —
+   this is what a raster asset lets us do that a hand-traced vector path
+   couldn't: perfect pixel-for-pixel registration, because it IS the same
+   pixels, just isolated.
+
+   REVEAL MECHANISM: a growing circular mask, centered at the route's
+   bottom (near the person's feet) and expanding outward until it's
+   comfortably past the peak. setupHeroRouteDraw() in js/main.js maps
+   fixed pixel coordinates from the source image (where the route's
+   bottom and the peak marker actually are) onto wherever that image
+   currently lands on screen — reading the live computed
+   background-size/position rather than assuming one — and sets
+   --sweep-origin-x/-y and --sweep-r (all real pixel values) from that.
+   This replaced two earlier approaches that both drifted: a diagonal
+   sweep positioned via mask-position percentages worked out offline
+   (assumed one fixed viewport aspect ratio), and, before that, the
+   peak-marker pulse below being positioned via plain CSS percentages of
+   the box — which stayed put relative to the BOX even when the image's
+   crop shifted underneath it at a breakpoint or on resize/zoom.
+   mapImagePointToBox() in js/main.js is what both this and the
+   peak-marker pulse now use. */
+.hero__scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("../assets/images/hero/trp-hero-route-mask.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: right center;
+  /* No brightness() here on purpose: Trail Orange's red channel (252 of
+     255) is already near-maxed, so brightness() clips red almost
+     immediately while green keeps climbing — the hue visibly shifts
+     toward pale yellow instead of just getting brighter. A colored
+     drop-shadow glows around the true color instead of distorting it. */
+  filter: blur(0.5px) drop-shadow(0 0 3px rgba(252, 163, 17, 0.9)) drop-shadow(0 0 6px rgba(252, 163, 17, 0.5));
+  /* --sweep-r / --sweep-band are set directly by JS on every animation
+     frame (not transitioned by CSS) — see setupHeroRouteDraw() in
+     js/main.js. The fallback values here (0px) only matter before JS has
+     run its first frame, or if JS fails entirely (safeRun in main.js
+     means a failure here just leaves the layer fully unrevealed rather
+     than breaking anything else). */
+  mask-image: radial-gradient(
+    circle at var(--sweep-origin-x, 58%) var(--sweep-origin-y, 92%),
+    black,
+    black calc(var(--sweep-r, 0px) - var(--sweep-band, 90px)),
+    transparent var(--sweep-r, 0px)
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at var(--sweep-origin-x, 58%) var(--sweep-origin-y, 92%),
+    black,
+    black calc(var(--sweep-r, 0px) - var(--sweep-band, 90px)),
+    transparent var(--sweep-r, 0px)
+  );
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+  pointer-events: none;
+}
+
+.hero__scene.is-glowing::after {
+  opacity: 1;
+}
+
+/* Peak marker pulse: a single soft glow blooming near the summit marker
+   once the sweep above has had time to climb there. left/top read
+   --peak-x/--peak-y, set by setupHeroRouteDraw() in js/main.js from the
+   marker's real pixel position in the source image, mapped through the
+   live background-size/position — not a fixed percentage of the box.
+   A fixed percentage drifted off the marker whenever the image's cover
+   crop changed underneath it (different breakpoints, a resize, browser
+   zoom crossing a breakpoint) since the box's percentage grid doesn't
+   move with the image inside it. The fallback values below only apply
+   before JS has run, or if it fails — see mapImagePointToBox(). */
+.hero__scene::before {
+  content: "";
+  position: absolute;
+  left: var(--peak-x, 81.6%);
+  top: var(--peak-y, 4.4%);
+  width: 4.2%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) scale(0.4);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(252, 163, 17, 0.9) 0%, rgba(252, 163, 17, 0.3) 30%, transparent 55%);
+  opacity: 0;
+  /* No transition-delay here on purpose — see the note on "is-peak-lit"
+     below for why a fixed delay doesn't work for this.
+
+     Deliberately NOT transitioning left/top: setupHeroRouteDraw() in
+     js/main.js recomputes --peak-x/--peak-y via a ResizeObserver, which
+     tracks a resize/zoom tightly (about once per frame). A transition on
+     top of that live tracking would always be easing toward a target
+     that's itself still moving, which reads as the dot trailing/lagging
+     behind rather than sitting still — worse than just snapping directly
+     to each recomputed position, which is what happens without one. */
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  pointer-events: none;
+}
+
+/* "is-peak-lit" (as opposed to piggybacking on "is-glowing") is added by
+   setupHeroRouteDraw() in js/main.js at the exact moment the growing
+   sweep circle's radius has fully covered the peak — not on a fixed
+   delay. An earlier version used transition-delay: 7.2s, sized to line
+   up with the sweep's fixed 8s duration, but that assumed the sweep
+   circle's radius reaches the peak right as the animation finishes. It
+   doesn't: the circle grows to 20% past the peak's distance (so the peak
+   is comfortably inside the fully-lit zone, not right at the fading
+   edge — see setupHeroRouteDraw()), which means it actually arrives
+   noticeably before 8s, and that arrival time depends on the feet-to-peak
+   distance, which is different at every viewport. A fixed delay could
+   only ever be correct for one specific distance — which is exactly why
+   the pulse was showing up a couple of seconds late. */
+.hero__scene.is-peak-lit::before {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  animation: hero-peak-pulse 2.6s ease-in-out 0.8s infinite;
+}
+
+@keyframes hero-peak-pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.18);
+    opacity: 0.75;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__scene::after,
+  .hero__scene::before {
+    transition: none;
+  }
+
+  .hero__scene.is-peak-lit::before {
+    animation: none;
+  }
 }
 
 /* Dark gradient overlay — solid Deep Navy on the left (protects text
@@ -233,6 +390,20 @@ section {
     background-position: right bottom;
   }
 
+  /* ::after duplicates .hero__scene's own background image (see above) —
+     must match its background-position here too, or the glow sweep would
+     be lit up over a different crop than what's actually visible. The
+     peak-marker pulse (::before) is hidden instead of repositioned: at
+     this crop the summit itself is unlikely to still be in view, so
+     nothing sensible to pulse against. */
+  .hero__scene::after {
+    background-position: right bottom;
+  }
+
+  .hero__scene::before {
+    display: none;
+  }
+
   .hero::after {
     background: rgba(20, 33, 61, 0.85);
   }
@@ -255,6 +426,13 @@ section {
     background-size: auto 100%;
     background-position: right center;
   }
+
+  /* ::after duplicates the same image — mirror the frozen-zoom sizing
+     here too, same reasoning as the mobile override above. */
+  .hero__scene::after {
+    background-size: auto 100%;
+    background-position: right center;
+  }
 }
 
 /* Ultrawide (1900px+): hold the same frozen scale/position as the 1600px
@@ -263,6 +441,11 @@ section {
    touching the 1600px behaviour. */
 @media (min-width: 1900px) {
   .hero__scene {
+    background-size: auto 100%;
+    background-position: right center;
+  }
+
+  .hero__scene::after {
     background-size: auto 100%;
     background-position: right center;
   }
@@ -314,15 +497,41 @@ section {
 }
 
 /* The secondary CTA is a transparent/navy-border button by default
-   (components.css) — on the dark hero it needs a light outline instead. */
-.hero .btn--secondary {
+   (components.css) — on the dark hero it needs a light outline instead.
+   .btn__wrap--secondary (not the generic .btn__wrap, which also wraps
+   the primary button) is included here too: the ring svg (.btn__ring)
+   lives as a sibling of the button rather than a child of it (see
+   components.css for why), so it inherits `color` from the wrapper, not
+   from .btn--secondary directly — without this, the ring would stay
+   off-white and never pick up the navy hover swap. Primary's ring
+   doesn't need this: it's colored explicitly (Slate Blue-Grey), not via
+   currentColor, so it has no reason to share this selector. */
+.hero .btn--secondary,
+.hero .btn__wrap--secondary {
   color: var(--color-warm-off-white);
   border-color: var(--color-warm-off-white);
 }
 
-.hero .btn--secondary:hover {
-  background: var(--color-warm-off-white);
-  color: var(--color-deep-navy);
+.hero .btn--secondary:hover,
+.hero .btn__wrap--secondary:hover {
+  /* Reuses the primary CTA's exact ::after inset-patch mechanism
+     (components.css) instead of an independently-computed border —
+     every attempt at a separately-traced hover border (clip-path ring,
+     svg stroke, drop-shadow fake-stroke) eventually showed some kind of
+     edge mismatch, while the inset-patch technique has had none since
+     it was built for the primary button. This element's own background
+     becomes the thin outer sliver (navy); the ::after patch becomes the
+     interior fill — Slate Blue-Grey rather than Trail Orange, a more
+     muted choice for this secondary CTA's hover state. Off-white text
+     (rather than navy) for contrast against that mid-toned fill.
+     background here is a no-op on .btn__wrap (no visible fill of its
+     own) and is what actually paints .btn--secondary's hover sliver. */
+  background: var(--color-deep-navy);
+  color: var(--color-warm-off-white);
+}
+
+.btn__wrap:hover .btn__ring {
+  opacity: 0;
 }
 
 /* Note: the old .hero__visual boxed-panel treatment (right-column framed

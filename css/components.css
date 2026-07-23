@@ -55,6 +55,330 @@
   color: var(--color-deep-navy);
 }
 
+/* Waypoint-tag shape: a small straight-line chamfer on the left corners,
+   a single point on the right — echoes the route/wayfinding marker
+   language already used in Process and Selected Peaks (.route-marker)
+   without adding a new icon.
+
+   This used to round the left corners with border-radius instead of a
+   chamfer, which looked fine on its own but broke once a border-style
+   ring (evenodd clip-path, see below) was added on top: border-radius
+   rounds the box FIRST, then clip-path's straight polygon lines clip
+   that already-curved edge, and the two geometries don't line up —
+   visible as a small jagged seam right at the corner. A chamfer (a
+   straight cut, not a curve) is just more polygon points, so the outer
+   shape and any inset "hole" ring built from the same points stay
+   perfectly consistent — no curve for the straight lines to clash with.
+
+   --wp-chamfer/--wp-point are shared via custom properties (inherited
+   by ::after pseudo-elements and read again below) so the fill,
+   hollow-ring, and hover-ring variants all trace the exact same outline
+   from one set of numbers, rather than three hand-kept copies that could
+   drift out of sync. --wp-point is a fixed px value, not a percentage,
+   so it stays a consistent size regardless of the button's text-driven
+   width — a percentage-based point would look disproportionate on a
+   short button like "Contact" versus a longer one like "Talk Through an
+   Idea". */
+.btn--waypoint {
+  --wp-chamfer: 8px;
+  --wp-point: 16px;
+  border-radius: 0;
+  clip-path: polygon(
+    var(--wp-chamfer) 0%,
+    calc(100% - var(--wp-point)) 0%,
+    100% 50%,
+    calc(100% - var(--wp-point)) 100%,
+    var(--wp-chamfer) 100%,
+    0% calc(100% - var(--wp-chamfer)),
+    0% var(--wp-chamfer)
+  );
+  padding-right: 2.2rem;
+}
+
+/* Cancels the global .btn:hover lift (translateY) for just the hero
+   CTAs — at the user's request, these shouldn't shift position on
+   hover, only change color/fill. Scoped to .btn--waypoint rather than
+   changed on .btn:hover directly, so the nav's Contact button and the
+   footer's Email Me/GitHub/LinkedIn buttons keep their lift. */
+.btn--waypoint:hover {
+  transform: none;
+}
+
+/* Solid-fill waypoint button (currently just the hero's "View My Work"):
+   flat Trail Orange — a vertical gradient here read as too busy next to
+   the secondary CTA's flatter fills, so it's been dropped in favor of a
+   plain, consistent fill. Scoped to .btn--waypoint specifically (not
+   .btn--primary generally) so the nav's Contact button and the footer's
+   Email Me button, which are plain .btn--primary without the waypoint
+   shape, are unaffected.
+
+   No real `border` here — a first version used one for the hover ring
+   and it broke at the point for the same reason the secondary button's
+   border did (see the note below): a border strokes the box's original
+   rectangular shape and is clipped afterward, and this shape's sharp
+   point doesn't survive that cleanly.
+
+   The ring is drawn by NEVER asking two separate elements to trace the
+   same boundary line. An earlier version punched a see-through hole in
+   an orange ::after using an evenodd clip-path, relying on that hole's
+   OUTER edge exactly coinciding with this element's own outer edge so
+   the ring's outer boundary lined up with the button's real edge. That
+   coincidence is the problem: two independently clipped/anti-aliased
+   layers drawing "the same" edge can still rasterize with a sub-pixel
+   seam between them, most visible at the chamfer corner where two edges
+   meet (confirmed in testing even after correcting the inset math).
+
+   Instead: this element (the base) owns the outer edge — full solid
+   fill, one clip-path, nobody else draws that line. ::after is an
+   inset navy patch with its OWN plain (non-evenodd) clip-path, smaller
+   than the base by 2px/0.83px on every side, sitting on top. Because
+   the two shapes don't share a boundary, there's no coincident edge for
+   the browser to mis-rasterize — the "ring" is just whatever gap is
+   left uncovered, not a traced line.
+   filter: drop-shadow (not box-shadow) is what lets the glow follow the
+   pointed silhouette instead of drawing a rectangle around it.
+
+   The inset patch's chamfer corners use "+ 0.83px", not the flat 2px
+   used on the straight edges — a diagonal edge has to be inset
+   PERPENDICULAR to itself, not along an axis, to keep the ring a
+   uniform width all the way around; for this chamfer's 45° angle that
+   perpendicular inset lands at chamfer + 2px*(√2-1) ≈ chamfer + 0.83px,
+   not chamfer + 2px. */
+.btn--waypoint.btn--primary {
+  position: relative;
+  z-index: 0;
+  background: var(--color-accent);
+  border: none;
+  transition: transform var(--transition-base), background var(--transition-base),
+    color var(--transition-base), filter var(--transition-base);
+  /* Inset 3px short of the true edge (the .btn__ring stroke sibling
+     lives in that gap) — two rounds of z-index changes tried to make
+     the ring paint ABOVE this fill instead, and neither one actually
+     worked in testing, so rather than a third attempt at that, this
+     makes it structurally impossible for the fill to reach the ring's
+     territory at all, regardless of paint order. Same
+     "chamfer + inset*(√2-1)" perpendicular-correction pattern used by
+     the ::after patches (see that comment below for the derivation),
+     just with 3px instead of 2px to match the ring's stroke-width. */
+  clip-path: polygon(
+    calc(var(--wp-chamfer) + 1.24px) 3px,
+    calc(100% - var(--wp-point) - 3px) 3px,
+    calc(100% - 3px) 50%,
+    calc(100% - var(--wp-point) - 3px) calc(100% - 3px),
+    calc(var(--wp-chamfer) + 1.24px) calc(100% - 3px),
+    3px calc(100% - var(--wp-chamfer) - 1.24px),
+    3px calc(var(--wp-chamfer) + 1.24px)
+  );
+}
+
+/* z-index: 0 above (establishing a local stacking context) + z-index: -1
+   here is what keeps this navy patch UNDER the button's text label. The
+   patch is positioned/absolute, and positioned descendants normally
+   paint above plain in-flow text regardless of source order — without
+   this, the navy patch would cover the label on hover. */
+.btn--waypoint.btn--primary::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--color-deep-navy);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base);
+  clip-path: polygon(
+    calc(var(--wp-chamfer) + 0.83px) 2px,
+    calc(100% - var(--wp-point) - 2px) 2px,
+    calc(100% - 2px) 50%,
+    calc(100% - var(--wp-point) - 2px) calc(100% - 2px),
+    calc(var(--wp-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--wp-chamfer) - 0.83px),
+    2px calc(var(--wp-chamfer) + 0.83px)
+  );
+}
+
+.btn--waypoint.btn--primary:hover {
+  background: var(--color-accent);
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 16px rgba(252, 163, 17, 0.75));
+  /* Restores the full outer clip-path (the plain shape from
+     .btn--waypoint) instead of the 3px-inset one above: on hover the
+     ring is hidden (.btn__wrap:hover .btn__ring in layout.css) and this
+     element's own background needs to reach the true edge again to
+     read as a solid, fully-filled button rather than leaving a 3px gap
+     where nothing paints. */
+  clip-path: polygon(
+    var(--wp-chamfer) 0%,
+    calc(100% - var(--wp-point)) 0%,
+    100% 50%,
+    calc(100% - var(--wp-point)) 100%,
+    var(--wp-chamfer) 100%,
+    0% calc(100% - var(--wp-chamfer)),
+    0% var(--wp-chamfer)
+  );
+}
+
+.btn--waypoint.btn--primary:hover::after {
+  opacity: 1;
+}
+
+/* Outline-style waypoint buttons (.btn--secondary, and .btn--on-dark if
+   ever combined with .btn--waypoint) can't use a real `border` here: a
+   border is stroked against the box's original rectangular shape and
+   THEN clipped, and at this shape's sharp point that leaves a visible
+   stray fragment where the uncapped stroke poked past the clip boundary
+   (confirmed in testing — the point of the "Talk Through an Idea"
+   button).
+
+   Three rounds of hand-computed clip-path polygons were tried here
+   (an evenodd hole directly on the text-bearing element — which
+   clipped the label right along with the background and made it
+   disappear entirely; then a two-element inset version; then a
+   self-contained evenodd ::after) and each one either broke the text
+   or left a visible break at the chamfered top-left corner, even after
+   correcting the inset math for that corner's angle.
+
+   The ring is now a real inline <svg><path> (see .btn__ring/.btn__wrap
+   below and setupWaypointRings() in js/main.js) with a native stroke
+   instead of a CSS clip-path. A stroked path's corners are joined by
+   the browser's own line-join logic, not by hand-picked inset
+   coordinates, so this whole class of corner bug isn't something that
+   can recur here. This element itself just keeps the plain, unmodified
+   outer shape it already inherits from .btn--waypoint — the same shape
+   the primary button's base element uses successfully — so the label
+   was never actually at risk from this element's own clip-path.
+
+   The ring still isn't nested INSIDE this element, though (see
+   .btn__wrap) — a first version put the <svg> as a child of this
+   button, and clip-path clips ALL of an element's rendering, including
+   descendants (the same rule that clipped the label away entirely
+   earlier). With the ring nested here, this element's own clip-path
+   was still clipping the ring against nearly — but not quite exactly —
+   the same boundary the ring's stroke was tracing, which reintroduced
+   a corner mismatch by a different route. Moving the ring out to a
+   sibling under .btn__wrap means nothing with a clip-path is ever an
+   ancestor of the ring, so there's no boundary left for anything to
+   clip it against.
+
+   The svg ring above is default-state-only. On hover this now reuses
+   the primary button's exact ::after inset-patch mechanism below —
+   same structure, same clip-path geometry, colors swapped (this
+   element's own hover background becomes the thin outer sliver, the
+   inset ::after patch becomes the interior fill). That mechanism has
+   had zero corner issues since it was built for the primary button,
+   unlike every ring/stroke-based approach tried here, so reusing it
+   as-is rather than inventing another variant is the reliable choice. */
+.btn--waypoint.btn--secondary,
+.btn--waypoint.btn--on-dark {
+  position: relative;
+  z-index: 0;
+  border: none;
+  transition: transform var(--transition-base), background var(--transition-base),
+    color var(--transition-base), border-color var(--transition-base), filter var(--transition-base);
+}
+
+/* Identical geometry to .btn--waypoint.btn--primary::after — same
+   inset polygon, same 0.83px chamfer correction — with the fill color
+   swapped to orange (primary uses this same patch in navy). See that
+   rule's comment for why the shape is inset rather than evenodd. */
+.btn--waypoint.btn--secondary::after,
+.btn--waypoint.btn--on-dark::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  /* Slate Blue-Grey rather than Trail Orange — a softer, more muted
+     hover fill at the user's request, once orange (matching primary)
+     read as too vivid for this secondary/quieter CTA. */
+  background: var(--color-slate-blue-grey);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base);
+  clip-path: polygon(
+    calc(var(--wp-chamfer) + 0.83px) 2px,
+    calc(100% - var(--wp-point) - 2px) 2px,
+    calc(100% - 2px) 50%,
+    calc(100% - var(--wp-point) - 2px) calc(100% - 2px),
+    calc(var(--wp-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--wp-chamfer) - 0.83px),
+    2px calc(var(--wp-chamfer) + 0.83px)
+  );
+}
+
+.btn--waypoint.btn--secondary:hover::after,
+.btn--waypoint.btn--on-dark:hover::after {
+  opacity: 1;
+}
+
+/* Plain wrapper, no clip-path or background of its own — just gives
+   the ring (a sibling of the button, not a child) something to
+   position against, so the button's own clip-path never has a chance
+   to clip it. display: inline-flex shrinks it to exactly the button's
+   size with no extra box around it.
+
+   z-index: 0 here (new) establishes wrap's OWN stacking context, so the
+   ring (z-index: 1) and the button (z-index: 0, for its own ::after
+   patch) are compared within a context scoped to just this wrap,
+   rather than whatever ancestor context they'd otherwise fall back to.
+   Without this, the ring rendered fully on secondary (its default
+   background is transparent, so nothing was ever actually competing
+   with it there) but showed only at the corners on primary, which has
+   an opaque fill and was the first real test of this ordering
+   (confirmed in testing). */
+.btn__wrap {
+  position: relative;
+  z-index: 0;
+  display: inline-flex;
+}
+
+/* Sized and drawn at runtime by setupWaypointRings() (js/main.js) to
+   match the button's actual rendered box — a fixed viewBox would drift
+   out of sync with the real box on resize/zoom, the same reason the
+   hero glow measures real DOM boxes instead of using fixed
+   percentages.
+
+   Default-state-only: hidden on hover (.btn__wrap:hover .btn__ring in
+   layout.css), since each button's hover treatment is handled by its
+   own ::after inset-patch mechanism above instead. secondary needs a
+   genuinely see-through gap by default (the hero scene shows through
+   the middle), which only a stroke — not a filled shape — provides;
+   primary is solid by default but gets a thin Slate Blue-Grey border
+   traced the same way, via .btn__wrap--primary below, so the button's
+   own text-bearing element never has to carry a second clip-path.
+
+   z-index: 1 (explicit, not auto) is load-bearing: the button is an
+   inline-flex, non-positioned sibling, and left to the browser's
+   default tie-breaking the ring was painting BEHIND that sibling's own
+   background instead of above it — only visible at the corners/point,
+   where the button's own clip-path pulls its fill back from the true
+   edge and the ring showed through the gap (confirmed in testing). A
+   plain z-index: 0 doesn't out-rank a non-positioned sibling as
+   clearly across browsers as an explicit positive value does. */
+.btn__ring {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.btn__ring path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  transition: stroke var(--transition-base);
+}
+
+/* Primary's default text/color isn't Charcoal (it's navy), so this
+   ring can't just inherit currentColor like secondary's does — set
+   explicitly instead, scoped to primary's own wrapper. Same border,
+   same stroke-width, as secondary's default ring above; only the
+   color differs. */
+.btn__wrap--primary .btn__ring path {
+  stroke: var(--color-charcoal);
+}
+
 .btn--disabled,
 .btn[aria-disabled="true"] {
   opacity: 0.55;
@@ -135,15 +459,30 @@
   }
 }
 
+/* align-self: start overrides .project-card's align-items: stretch — without
+   it, this box stretches to match the height of the text column next to it
+   (which varies card to card based on content length), producing an
+   arbitrarily tall/narrow shape that doesn't match any of the source
+   images' actual proportions. That mismatch was the real cause of both the
+   original aggressive cover-crop (cutting into headline/nav text) and the
+   contain letterboxing that replaced it. Sizing this box by aspect-ratio
+   instead keeps it a consistent, sensible shape regardless of how much text
+   sits beside it. */
 .project-card__media {
   position: relative;
   background: var(--color-charcoal);
+  align-self: start;
 }
 
 .project-card__media img {
+  display: block;
   width: 100%;
-  height: 100%;
-  min-height: 220px;
+  /* 4:3 is a middle-ground ratio across the five source screenshots (see
+     js/data.js), which range from roughly square to ~1.6:1 — it crops less
+     aggressively than the previous stretched-tall box did, while staying
+     consistent across all cards rather than needing a tuned ratio per
+     image. */
+  aspect-ratio: 4 / 3;
   object-fit: cover;
 }
 
@@ -174,10 +513,6 @@
   border-color: var(--color-accent);
 }
 
-.project-card--featured .project-card__media img {
-  min-height: 280px;
-}
-
 .project-card--featured .project-card__number {
   font-size: var(--fs-h3);
 }
@@ -189,10 +524,6 @@
 @media (min-width: 960px) {
   .project-card--featured {
     grid-template-columns: 1.2fr 1fr;
-  }
-
-  .project-card--featured .project-card__media img {
-    min-height: 360px;
   }
 }
 
