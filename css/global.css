@@ -10,6 +10,18 @@
 
 html {
   scroll-behavior: smooth;
+  /* proximity, not mandatory — mandatory forces the scroll to always
+     land on a snap point, which can fight the user if they're trying to
+     stop somewhere in between (the same "fighting the user's scroll"
+     complaint that got the pinned Selected Peaks section reverted).
+     proximity only pulls the page into alignment when a scroll already
+     comes to rest close to a snap point, so it adds a bit of "this
+     settled into place for you" polish without ever overriding where
+     someone's actually trying to stop. Only elements that opt in with
+     scroll-snap-align (currently just .project-card, in components.css)
+     become snap points — this alone doesn't change how any other
+     section behaves. */
+  scroll-snap-type: y proximity;
 }
 
 body {
@@ -79,27 +91,58 @@ button:focus-visible,
   outline-offset: 3px;
 }
 
-/* Skip link for keyboard/screen reader users */
+/* Skip link for keyboard/screen reader users — required for WCAG 2.4.1
+   (Bypass Blocks) and lets keyboard/screen-reader visitors jump past
+   the nav straight to the main content instead of tabbing through it
+   on every page load. Meant to stay fully invisible until it receives
+   keyboard focus (first Tab press), then appear briefly at the top.
+
+   Hidden via transform, not top: -3rem as a first version did — a
+   fixed negative top offset has to guess the link's own rendered
+   height (padding + line-height) exactly right, and here it was just
+   shy of enough, leaving a visible sliver at rest even without focus
+   (confirmed in testing). translateY(-150%) hides it relative to its
+   OWN height regardless of exactly what that height computes to, so
+   there's no guessing involved.
+
+   box-shadow adds visual separation on focus: the link's background is
+   the same Deep Navy as the header behind it, so without some kind of
+   edge the two blended together and it read as a broken, doubled-up
+   logo area rather than a distinct floating control (confirmed in
+   testing).
+
+   left: 50% + translateX(-50%) centers it instead of anchoring to the
+   left edge — a first version sat at left: 1rem, directly on top of
+   the TRP logo (confirmed in testing, screenshot showed the logo
+   peeking out from behind it). Centered, it lands in the open space
+   between the logo and the nav on desktop instead of colliding with
+   either. */
 .skip-link {
   position: absolute;
-  left: 1rem;
-  top: -3rem;
+  left: 50%;
+  top: 1rem;
+  transform: translate(-50%, -150%);
   background: var(--color-deep-navy);
   color: var(--color-warm-off-white);
   padding: 0.75rem 1.25rem;
   border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   z-index: 100;
-  transition: top var(--transition-base);
+  transition: transform var(--transition-base);
 }
 
 .skip-link:focus {
-  top: 1rem;
+  transform: translate(-50%, 0);
 }
 
 /* Reduced motion: respect user preference site-wide */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+    /* Scroll-snap moves the scroll position without the user directly
+       controlling it, same category of concern as any other motion —
+       off for reduced-motion users, same as everything else here. */
+    scroll-snap-type: none;
   }
 
   * {

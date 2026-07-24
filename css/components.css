@@ -144,31 +144,64 @@
    uniform width all the way around; for this chamfer's 45° angle that
    perpendicular inset lands at chamfer + 2px*(√2-1) ≈ chamfer + 0.83px,
    not chamfer + 2px. */
+/* Default and :hover were deliberately swapped at the user's request
+   ("I almost like the on hover better than what we have as the non
+   hover — let's try reversing it") — everything below is what used to
+   be the :hover styling (navy interior via ::after, orange ring/text,
+   the stronger glow, full-edge fill, ring hidden), and :hover further
+   down is what used to be this default (orange fill, inset clip-path
+   revealing the Charcoal ring, navy text, the dimmer glow). */
 .btn--waypoint.btn--primary {
   position: relative;
   z-index: 0;
   background: var(--color-accent);
+  color: var(--color-accent);
   border: none;
+  /* Bigger than the shared .btn default, not just taller than the now
+     smaller secondary CTA — leans further into using size/scale (on
+     top of the glow below) to make this the clear visual anchor of
+     the pair, rather than relying on the secondary CTA alone having
+     shrunk to create the size contrast. */
+  font-size: 1rem;
+  /* Trimmed from 1rem top/bottom, 1.75rem/2.5rem left/right — read as
+     too much air around the label, vertically especially, at the
+     user's request. */
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+  padding-left: 1.5rem;
+  padding-right: 2.2rem;
+  /* The stronger glow (was :hover-only) is the default now. */
+  filter: drop-shadow(0 0 16px rgba(252, 163, 17, 0.75));
   transition: transform var(--transition-base), background var(--transition-base),
     color var(--transition-base), filter var(--transition-base);
-  /* Inset 3px short of the true edge (the .btn__ring stroke sibling
-     lives in that gap) — two rounds of z-index changes tried to make
-     the ring paint ABOVE this fill instead, and neither one actually
-     worked in testing, so rather than a third attempt at that, this
-     makes it structurally impossible for the fill to reach the ring's
-     territory at all, regardless of paint order. Same
-     "chamfer + inset*(√2-1)" perpendicular-correction pattern used by
-     the ::after patches (see that comment below for the derivation),
-     just with 3px instead of 2px to match the ring's stroke-width. */
+  /* Full outer clip-path (was :hover-only) is the default now — the
+     ring is hidden by default (see .btn__wrap--primary .btn__ring
+     below) so there's no gap for it to occupy at rest. */
   clip-path: polygon(
-    calc(var(--wp-chamfer) + 1.24px) 3px,
-    calc(100% - var(--wp-point) - 3px) 3px,
-    calc(100% - 3px) 50%,
-    calc(100% - var(--wp-point) - 3px) calc(100% - 3px),
-    calc(var(--wp-chamfer) + 1.24px) calc(100% - 3px),
-    3px calc(100% - var(--wp-chamfer) - 1.24px),
-    3px calc(var(--wp-chamfer) + 1.24px)
+    var(--wp-chamfer) 0%,
+    calc(100% - var(--wp-point)) 0%,
+    100% 50%,
+    calc(100% - var(--wp-point)) 100%,
+    var(--wp-chamfer) 100%,
+    0% calc(100% - var(--wp-chamfer)),
+    0% var(--wp-chamfer)
   );
+}
+
+/* Tighter padding for the nav's Contact button specifically — the
+   sizing above (bigger padding, to help the hero's "View My Work"
+   stand out) doesn't suit a compact nav bar. .main-nav__link.
+   btn--waypoint.btn--primary (3 classes) rather than just
+   .main-nav__link.btn--waypoint (2, tying) guarantees this wins over
+   the rule above regardless of source order. font-size is left alone
+   at this element's own inherited 1rem — only the padding tightens. */
+.main-nav__link.btn--waypoint.btn--primary {
+  /* Trimmed further along with the hero version above, same request
+     (less padding, vertically especially). */
+  padding-top: 0.45rem;
+  padding-bottom: 0.45rem;
+  padding-left: 0.95rem;
+  padding-right: 1.5rem;
 }
 
 /* z-index: 0 above (establishing a local stacking context) + z-index: -1
@@ -182,9 +215,30 @@
   z-index: -1;
   inset: 0;
   background: var(--color-deep-navy);
-  opacity: 0;
+  /* Visible by default now (was opacity: 0, hover-only) — this navy
+     interior patch is part of the new default look. */
+  opacity: 1;
   pointer-events: none;
-  transition: opacity var(--transition-base);
+  /* Reveal/hide is driven by mask-position now, not opacity — the user
+     asked for the color change on hover to read as a wipe that forms
+     from the top and finishes at the bottom, rather than a flat
+     crossfade. The mask gradient is 200% of the element's own height,
+     with transparent stacked above solid black (visible) — sliding it
+     from mask-position 100% (default: fully visible, black band lined
+     up with the whole element) to 0% (hover: fully hidden) uncovers
+     transparent from the top down as it slides, so the navy patch
+     disappears top-to-bottom and the orange base fill reads as
+     "forming" in from the top as it's revealed. transition-slow (not
+     -base, like this element's other hover properties) because the
+     wipe needs to actually be visible in motion — at 180ms it read as
+     an near-instant flicker instead of a sweep. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 50%, black 50%);
+  mask-image: linear-gradient(to bottom, transparent 50%, black 50%);
+  -webkit-mask-size: 100% 200%;
+  mask-size: 100% 200%;
+  -webkit-mask-position: 0% 100%;
+  mask-position: 0% 100%;
+  transition: -webkit-mask-position var(--transition-slow), mask-position var(--transition-slow);
   clip-path: polygon(
     calc(var(--wp-chamfer) + 0.83px) 2px,
     calc(100% - var(--wp-point) - 2px) 2px,
@@ -198,27 +252,31 @@
 
 .btn--waypoint.btn--primary:hover {
   background: var(--color-accent);
-  color: var(--color-accent);
-  filter: drop-shadow(0 0 16px rgba(252, 163, 17, 0.75));
-  /* Restores the full outer clip-path (the plain shape from
-     .btn--waypoint) instead of the 3px-inset one above: on hover the
-     ring is hidden (.btn__wrap:hover .btn__ring in layout.css) and this
-     element's own background needs to reach the true edge again to
-     read as a solid, fully-filled button rather than leaving a 3px gap
-     where nothing paints. */
+  color: var(--color-deep-navy);
+  /* The dimmer glow (was the default) is what hover reverts to now. */
+  filter: drop-shadow(0 0 10px rgba(252, 163, 17, 0.45));
+  /* Reinstates the 3px-inset clip-path (was the default) on hover — the
+     ring becomes visible on hover now (.btn__wrap--primary:hover
+     .btn__ring below), and needs this gap to occupy, same as it always
+     has; this element's own fill just stops 3px short to leave room
+     for it. */
   clip-path: polygon(
-    var(--wp-chamfer) 0%,
-    calc(100% - var(--wp-point)) 0%,
-    100% 50%,
-    calc(100% - var(--wp-point)) 100%,
-    var(--wp-chamfer) 100%,
-    0% calc(100% - var(--wp-chamfer)),
-    0% var(--wp-chamfer)
+    calc(var(--wp-chamfer) + 1.24px) 3px,
+    calc(100% - var(--wp-point) - 3px) 3px,
+    calc(100% - 3px) 50%,
+    calc(100% - var(--wp-point) - 3px) calc(100% - 3px),
+    calc(var(--wp-chamfer) + 1.24px) calc(100% - 3px),
+    3px calc(100% - var(--wp-chamfer) - 1.24px),
+    3px calc(var(--wp-chamfer) + 1.24px)
   );
 }
 
 .btn--waypoint.btn--primary:hover::after {
-  opacity: 1;
+  /* Hides the navy patch on hover now (was opacity: 1 by default) —
+     hover reveals the plain orange fill + Charcoal ring instead, wiped
+     away top-to-bottom by the mask-position transition above. */
+  -webkit-mask-position: 0% 0%;
+  mask-position: 0% 0%;
 }
 
 /* Outline-style waypoint buttons (.btn--secondary, and .btn--on-dark if
@@ -276,6 +334,24 @@
     color var(--transition-base), border-color var(--transition-base), filter var(--transition-base);
 }
 
+/* An exact 2/3 scale of the primary CTA (font-size 0.58rem) made the
+   label too small to read comfortably (confirmed in testing). Backed
+   the font-size back up to something legible while keeping the
+   vertical padding reduced, so the button is still noticeably shorter
+   than primary without shrinking the text down with it. Scoped to
+   .btn--secondary specifically, not .btn--on-dark too (which isn't
+   actually used anywhere yet) — sets padding as longhands rather than
+   the shorthand so it doesn't clobber .btn--waypoint's own
+   padding-right override (needed for the point's clearance) further
+   down the cascade. */
+.btn--waypoint.btn--secondary {
+  font-size: 0.75rem;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+  padding-left: 1.25rem;
+  padding-right: 1.9rem;
+}
+
 /* Identical geometry to .btn--waypoint.btn--primary::after — same
    inset polygon, same 0.83px chamfer correction — with the fill color
    swapped to orange (primary uses this same patch in navy). See that
@@ -290,9 +366,24 @@
      hover fill at the user's request, once orange (matching primary)
      read as too vivid for this secondary/quieter CTA. */
   background: var(--color-slate-blue-grey);
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
-  transition: opacity var(--transition-base);
+  /* Same top-to-bottom mask wipe as the primary button's ::after (see
+     its comment above) instead of an opacity crossfade — here the
+     gradient is the mirror image (solid black/visible on top,
+     transparent on bottom) because this patch is APPEARING on hover
+     rather than disappearing: sliding mask-position from 100%
+     (default: fully hidden) to 0% (hover: fully visible) uncovers the
+     visible band starting at the top, so the fill reads as forming
+     downward from the top and finishing at the bottom, same direction
+     as primary's reveal. */
+  -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 50%);
+  mask-image: linear-gradient(to bottom, black 50%, transparent 50%);
+  -webkit-mask-size: 100% 200%;
+  mask-size: 100% 200%;
+  -webkit-mask-position: 0% 100%;
+  mask-position: 0% 100%;
+  transition: -webkit-mask-position var(--transition-slow), mask-position var(--transition-slow);
   clip-path: polygon(
     calc(var(--wp-chamfer) + 0.83px) 2px,
     calc(100% - var(--wp-point) - 2px) 2px,
@@ -306,7 +397,10 @@
 
 .btn--waypoint.btn--secondary:hover::after,
 .btn--waypoint.btn--on-dark:hover::after {
-  opacity: 1;
+  /* Reveals the fill top-to-bottom via the mask-position transition
+     above (was opacity: 1). */
+  -webkit-mask-position: 0% 0%;
+  mask-position: 0% 0%;
 }
 
 /* Plain wrapper, no clip-path or background of its own — just gives
@@ -336,14 +430,14 @@
    hero glow measures real DOM boxes instead of using fixed
    percentages.
 
-   Default-state-only: hidden on hover (.btn__wrap:hover .btn__ring in
-   layout.css), since each button's hover treatment is handled by its
-   own ::after inset-patch mechanism above instead. secondary needs a
-   genuinely see-through gap by default (the hero scene shows through
-   the middle), which only a stroke — not a filled shape — provides;
-   primary is solid by default but gets a thin Slate Blue-Grey border
-   traced the same way, via .btn__wrap--primary below, so the button's
-   own text-bearing element never has to carry a second clip-path.
+   Secondary shows this by default and hides it on hover (see
+   .btn__wrap--secondary in layout.css) — it needs a genuinely
+   see-through gap by default (the hero scene shows through the
+   middle), which only a stroke, not a filled shape, provides. Primary
+   is the reverse (.btn__wrap--primary in layout.css): hidden by
+   default, visible on hover, matching its swapped default/:hover
+   styling above (the user preferred the old hover look better and
+   asked to swap which state each one is).
 
    z-index: 1 (explicit, not auto) is load-bearing: the button is an
    inline-flex, non-positioned sibling, and left to the browser's
@@ -370,11 +464,13 @@
   transition: stroke var(--transition-base);
 }
 
-/* Primary's default text/color isn't Charcoal (it's navy), so this
-   ring can't just inherit currentColor like secondary's does — set
-   explicitly instead, scoped to primary's own wrapper. Same border,
-   same stroke-width, as secondary's default ring above; only the
-   color differs. */
+/* Back to Charcoal — where this started, before trying Slate
+   Blue-Grey, Warm Off-White, Soft Sand, and a deeper orange in turn.
+   This ring can't just inherit currentColor like secondary's does
+   (primary's text/color is navy, not Charcoal) — set explicitly
+   instead, scoped to primary's own wrapper. Same border, same
+   stroke-width, as secondary's default ring above; only the color
+   differs. */
 .btn__wrap--primary .btn__ring path {
   stroke: var(--color-charcoal);
 }
@@ -439,146 +535,357 @@
 
 /* ---- Project card ----------------------------------------------------------- */
 
+/*
+  Image on one side, text on the other, alternating sides project to
+  project — the direction landed on after a full-bleed-image-with-
+  overlay-text version (itself following a reverted pinned/horizontal-
+  scroll section) read as visually "sloppy" without a clear split
+  between photo and copy. Universal treatment, mobile included — not a
+  desktop-only enhancement layered over a different boxed design.
+
+  Image and text are two distinct, separately-rounded blocks with real
+  space between them (gap below), rather than one seamless rounded
+  shape the two used to share — closer to the two-column proportions
+  and clearly-separated "siding" of the reference layout Travis flagged,
+  while keeping TRP's own navy panel/typography/pill-tag treatment
+  rather than adopting the reference's own styling.
+
+  Single column by default (image on top, text below — see the
+  media query below for the 640px+ side-by-side split and the
+  alternating order). min-height gives every project real presence at
+  a glance — clamp() keeps it from getting silly on very short or very
+  tall viewports rather than being a flat vh value.
+*/
 .project-card {
+  position: relative;
   display: grid;
   gap: var(--space-md);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  overflow: hidden;
+  /* No min-height here anymore (was clamp(24rem, 65vh, 42rem)) — per
+     direct decision, every card's image stays the whole, uncropped
+     screenshot, and the real files vary from nearly-square to 1.64:1
+     wide. A fixed vh-based floor was exactly what would leave visible
+     background space above/below the shorter or wider images (the
+     same letterbox problem already fixed once on the featured card),
+     so every card — featured or not — just sizes to whichever column,
+     image or text, actually needs more height, no artificial floor
+     forcing extra room. The featured card used to keep its own taller
+     min-height here too; dropped per direct feedback so all five
+     cards are the same size now (see .project-card--featured below,
+     which keeps only a bumped title size as its one remaining, much
+     quieter emphasis). */
+  padding: var(--space-card);
+  /* Slate Blue Grey / Warm Off-White by default, overridden by
+     .project-card--alt below — driven by a markup-level class (set in
+     js/main.js from each project's absolute position in the data), not
+     nth-child, since the first project now renders into its own
+     container outside .peaks__track (see .peaks__intro-group in
+     css/layout.css) and nth-child would recount incorrectly from
+     whichever project ends up first inside .peaks__track. color-mix,
+     not a plain solid color, lets a bit of the section's own
+     topo-pattern background show through the card itself, so it reads
+     as sitting slightly on top of that texture rather than fully
+     masking it — only the card's own background is see-through here;
+     the image and text sitting on top of it stay fully opaque. */
+  --card-bg: color-mix(in srgb, var(--color-slate-blue-grey) 80%, transparent);
+  --card-fg: var(--color-warm-off-white);
+  background: var(--card-bg);
+  color: var(--card-fg);
+  /* No border-radius/mask fade (both dropped per earlier direct
+     feedback) — instead the same 0.5rem chamfer as the image inside it
+     and the .btn--waypoint CTAs, on every project card now. Started as
+     a featured-card-only treatment, then extended to all of them per
+     direct request ("add the style from the first card to the rest of
+     them") — the size/emphasis difference (taller min-height, bigger
+     title) stays unique to .project-card--featured below; this shape
+     is now shared by every card. */
+  --card-chamfer: 0.5rem;
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+  /* Opts this element in as a scroll-snap target (scroll-snap-type: y
+     proximity lives on html in global.css, off for reduced motion) —
+     when a scroll comes to rest near a project, the page settles so its
+     top edge lines up cleanly instead of stopping mid-project. start,
+     not center: this block isn't a fixed height (min-height only, it
+     can run taller with more content), so aligning its top edge is
+     predictable in a way that centering a variable-height block isn't.
+     scroll-snap-stop: always matches the same property on every
+     top-level section (layout.css) — without it, a fast scroll flick
+     could glide straight past a project instead of catching on it.
+     scroll-margin-top offsets that alignment point by roughly the
+     sticky header's own height — without it, "start" would tuck the
+     project's top edge directly under the header, which is itself
+     position: sticky and would otherwise cover it. A plain rem value
+     rather than a JS-measured one (compare --header-height, removed
+     earlier) because proximity snapping only needs to be roughly right,
+     not the pixel-exact offset the old hard-pinned viewport needed.
+
+     center, not start — per direct request, each card now settles in
+     the vertical MIDDLE of the viewport as you scroll through the
+     section, rather than lining its top edge up under the header. The
+     featured card overrides this back to none below: it shares one
+     combined snap stop with the "Selected Peaks" header instead (see
+     .peaks__intro-group in css/layout.css), so it doesn't need its own
+     separate snap point. */
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  scroll-margin-top: 5rem;
+}
+
+/* Opts out of the individual center-snap above — this card now shares
+   .peaks__intro-group's own single snap-align: center stop together
+   with the "Selected Peaks" header (css/layout.css), rather than
+   getting a second, separate stop of its own directly underneath it. */
+.project-card--featured {
+  scroll-snap-align: none;
 }
 
 @media (min-width: 640px) {
   .project-card {
-    grid-template-columns: 1fr 1.2fr;
-    align-items: stretch;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
   }
 
-  .project-card:nth-child(even) .project-card__media {
+  /* Alternates which side the image sits on, project to project — the
+     default keeps source order (image, then text); --alt swaps the
+     image to the right instead by reordering just the media column.
+     --alt is set in the markup itself by js/main.js (each project's
+     absolute position in the data), not derived from nth-child here —
+     the first project now renders into its own container outside
+     .peaks__track (see .peaks__intro-group in css/layout.css), which
+     would otherwise reset nth-child counting for whichever project
+     ends up first inside .peaks__track and flip this pattern for
+     everything after it. */
+  .project-card--alt .project-card__media {
     order: 2;
   }
 }
 
-/* align-self: start overrides .project-card's align-items: stretch — without
-   it, this box stretches to match the height of the text column next to it
-   (which varies card to card based on content length), producing an
-   arbitrarily tall/narrow shape that doesn't match any of the source
-   images' actual proportions. That mismatch was the real cause of both the
-   original aggressive cover-crop (cutting into headline/nav text) and the
-   contain letterboxing that replaced it. Sizing this box by aspect-ratio
-   instead keeps it a consistent, sensible shape regardless of how much text
-   sits beside it. */
-.project-card__media {
-  position: relative;
-  background: var(--color-charcoal);
-  align-self: start;
+/* Alternates each project's own card color — Slate Blue Grey, Warm
+   Off-White, Slate Blue Grey, Warm Off-White — instead of one uniform
+   section background. The default pair (Slate Blue Grey / Warm
+   Off-White) is defined up on .project-card itself, alongside its other
+   base properties; this just overrides that pair for every other
+   project. Driven by the same markup-level --alt class as the
+   image-side alternation above, for the same reason (nth-child would
+   recount incorrectly once the first project moved into its own
+   container).
+
+   Proof-point pills used to swap color to match whichever card variant
+   they sat on (light neutrals on the dark cards, dark neutrals on the
+   light cards) — now fixed Deep Navy on every card regardless, per
+   direct request, so every pill on the page reads identically instead
+   of alternating with the card background. */
+.project-card--alt {
+  --card-bg: color-mix(in srgb, var(--color-warm-off-white) 80%, transparent);
+  --card-fg: var(--color-text);
 }
 
+/* A minimal browser-window frame (a Charcoal bar with three dots above
+   the screenshot) was tried here and reverted — didn't land visually,
+   at the user's direct call ("I don't like the desktop frame. Let's
+   revert that back"). Back to the plain image.
+
+   This whole block used to be a featured-card-only treatment, worked
+   out on Mountainside Millwork first: no forced crop/aspect-ratio
+   guess (screenshots render at their own real, whatever-it-is
+   dimensions instead), and a 0.5rem chamfer on all four corners
+   instead of a hard square edge, tying into the same cut-corner shape
+   .btn--waypoint's CTAs and .project-card itself use. Extended to
+   every project card now per direct request ("add the style from the
+   first card to the rest of them") — see .project-card--featured
+   further down for the one thing that's still unique to it (a taller
+   block and bigger title, kept as its own emphasis). */
+.project-card__media {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--color-deep-navy);
+  border-radius: 0;
+  --img-chamfer: 0.5rem;
+  clip-path: polygon(
+    var(--img-chamfer) 0%,
+    calc(100% - var(--img-chamfer)) 0%,
+    100% var(--img-chamfer),
+    100% calc(100% - var(--img-chamfer)),
+    calc(100% - var(--img-chamfer)) 100%,
+    var(--img-chamfer) 100%,
+    0% calc(100% - var(--img-chamfer)),
+    0% var(--img-chamfer)
+  );
+}
+
+@media (min-width: 640px) {
+  .project-card__media {
+    height: auto;
+    /* fit-content, not just "auto" alone — belt-and-suspenders against
+       any grid-stretch scenario forcing this box to the row's full
+       min-height (set by .project-card--featured below): fit-content
+       pins this item's own block size to its content's real height
+       regardless of what align-self resolves to, so the image itself
+       can never end up inside a taller box than it actually needs. */
+    max-height: fit-content;
+    /* Balances whatever leftover vertical space is left in the grid
+       row (set by .project-card's own min-height) evenly above and
+       below the image, rather than sticking it to the top. */
+    align-self: center;
+  }
+}
+
+/* Full width, at the screenshot's own real height — not cropped
+   (object-fit: cover) and not letterboxed inside a guessed box shape.
+   No height set here (stays auto, inherited from the img's own natural
+   block layout) so the browser uses the file's actual intrinsic aspect
+   ratio, whatever it really is, instead of being told what ratio to
+   assume. */
 .project-card__media img {
   display: block;
   width: 100%;
-  /* 4:3 is a middle-ground ratio across the five source screenshots (see
-     js/data.js), which range from roughly square to ~1.6:1 — it crops less
-     aggressively than the previous stretched-tall box did, while staying
-     consistent across all cards rather than needing a tuned ratio per
-     image. */
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-}
-
-/* Label over the featured card's image, sourced from the project's own
-   first tag (e.g. "Client Website") — no invented copy, just a more
-   visible presentation of data that's already in js/data.js. */
-.project-card__badge {
-  position: absolute;
-  top: var(--space-sm);
-  left: var(--space-sm);
-  z-index: 1;
-  font-family: var(--font-display);
-  font-size: var(--fs-label);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-deep-navy);
-  background: var(--color-accent);
-  border-radius: var(--radius-pill);
-  padding: 0.3rem 0.85rem;
+  height: auto;
+  /* No edge fade here anymore — that mask existed to blend the image
+     into the text panel where the two used to touch directly. Now that
+     a real gap (see .project-card's gap) separates them as two
+     distinct blocks, the image can just be a plain, fully-visible
+     photo with its own clean edge instead of dissolving into the
+     panel. */
 }
 
 /* Featured card (the one project with `featured: true` in js/data.js —
-   currently Mountainside Millwork, the one real client project): a larger
-   image and slightly heavier type so it reads as the section's strongest
-   proof piece. Layout/typography only — no new claims or content beyond
-   what's already in the data. */
-.project-card--featured {
-  border-color: var(--color-accent);
-}
-
-.project-card--featured .project-card__number {
-  font-size: var(--fs-h3);
-}
-
+   currently Mountainside Millwork, the one real client project): used
+   to get a taller forced min-height (clamp(28rem, 75vh, 48rem)) as its
+   one remaining size difference from the rest — dropped per direct
+   feedback ("make all the cards the same size... there's just a lot of
+   empty space"). Now that every card's image sizes naturally instead of
+   being forced/cropped to fill a box, that min-height was only ever
+   creating dead space around a normal-sized image, not real emphasis.
+   Every card, featured or not, now sizes the same way: to whichever
+   column (image or text) actually needs more height, no artificial
+   floor. Title size stays bumped (see below) as the one remaining, much
+   quieter way this card still reads as the section's strongest proof
+   piece, without reintroducing empty space to do it. */
 .project-card--featured h3 {
   font-size: var(--fs-h2);
 }
 
-@media (min-width: 960px) {
-  .project-card--featured {
-    grid-template-columns: 1.2fr 1fr;
-  }
-}
+/* No boxed panel on this side anymore — only the image is its own
+   contained block now (see .project-card__media); the text sits
+   directly on the section's own light background, plain, the way the
+   reference layout Travis pointed to has no card/box around its
+   copy either. color switches to the site's normal dark-on-light
+   text (same as every other section) since there's no dark panel
+   behind it to contrast against anymore.
 
+   justify-content: center balances the text block vertically within
+   whatever height the row ends up (set by .project-card's min-height
+   above, via the default align-items: stretch on both grid columns) —
+   without it, a short project (fewer proof points, shorter description)
+   would leave the text sitting awkwardly high with empty space
+   underneath, instead of feeling centered/composed regardless of how
+   much content there is. max-height/overflow-y: auto stay as a safety
+   net for the rare case a long description still doesn't fit at a
+   short viewport height, rather than silently clipping. */
 .project-card__body {
-  padding: var(--space-card);
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  justify-content: center;
+  /* 1.25rem, not the tighter 0.6rem this started at — worked out on
+     the featured card first (it runs much taller, so 0.6rem read as
+     cramped there) and then applied to every card per direct request.
+     h3's own default bottom margin (global.css: h1/h2/h3 get margin: 0
+     0 var(--space-sm)) is zeroed out below so title-to-paragraph
+     spacing is set by this same gap value too, rather than gap PLUS a
+     separate margin stacking on top of it and throwing off the
+     otherwise-even rhythm between every other pair of elements in this
+     column. */
+  gap: 1.25rem;
+  max-height: 100%;
+  overflow-y: auto;
+  /* No color set here — it inherits --card-fg from .project-card
+     itself, which flips between Warm Off-White and the site's normal
+     dark text depending on whether this project's card is the Slate
+     Blue Grey or Warm Off-White variant (see the nth-child rules
+     above). Padding also moved to .project-card itself now that the
+     whole card (not just this text half) carries the alternating
+     background color. */
 }
 
-.project-card__number {
+.project-card__body h3 {
+  margin-bottom: 0;
+}
+
+/* Tags dropped the pill treatment (was .project-card__tag, a chamfered
+   chip matching the proof-point chips below) in favor of a single
+   plain meta line, dot-separated — per direct feedback, having two
+   different pill styles stacked right on top of each other read as
+   cluttered/competing rather than a clear "here's the category, here's
+   the proof" split. This is now just quiet supporting text under the
+   title, not a second row of colored shapes fighting the proof chips
+   for attention; the chamfered chip treatment stays reserved for proof
+   points only, so it reads as the one thing on the card actually meant
+   to stand out. Rendered in main.js as project.tags.join(" · ") inside
+   a single <p>, not a list — there's no per-tag interactivity or
+   semantic grouping need here that would justify list markup. */
+.project-card__meta {
   font-family: var(--font-display);
-  color: var(--color-accent);
-  font-size: var(--fs-small);
-  letter-spacing: 0.08em;
-}
-
-.project-card__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: var(--space-xs);
-}
-
-/* Stronger tag contrast: Deep Navy text on a tinted panel background reads
-   clearly against the card's Warm Off-White surface, rather than the
-   previous muted Slate Blue Grey text that read as washed out. */
-.project-card__tag {
   font-size: var(--fs-label);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-deep-navy);
-  background: var(--color-bg-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  padding: 0.2rem 0.7rem;
+  color: var(--card-fg);
+  opacity: 0.75;
+  margin: 0;
 }
 
-/* Proof points as compact, scannable chips instead of a vertical bullet
-   list — same data (proofPoints in js/data.js), easier to scan across
-   five cards. */
+/* Proof-point chips keep the card's own cut-corner shape (matching
+   .project-card and .project-card__media) — this is the one pill style
+   left on the card now that tags are plain text above, so it doesn't
+   need to compete with a second pill treatment anymore.
+
+   --pill-chamfer is intentionally the same 0.5rem as --card-chamfer/
+   --img-chamfer (not scaled down for this much smaller element) — a
+   consistent chamfer SIZE, not a proportional one, is what actually
+   reads as "the same corner treatment" repeating across very
+   differently sized elements; scaling it down here would make it look
+   like a different, unrelated shape rather than the same motif. */
+.project-card__proof-chips li {
+  --pill-chamfer: 0.25rem;
+  border-radius: 0;
+  clip-path: polygon(
+    var(--pill-chamfer) 0%,
+    calc(100% - var(--pill-chamfer)) 0%,
+    100% var(--pill-chamfer),
+    100% calc(100% - var(--pill-chamfer)),
+    calc(100% - var(--pill-chamfer)) 100%,
+    var(--pill-chamfer) 100%,
+    0% calc(100% - var(--pill-chamfer)),
+    0% var(--pill-chamfer)
+  );
+}
+
+/* Back to filled chips (was a plain list for a round, then requested
+   back) — fixed Deep Navy / Warm Off-White now, not the per-card
+   --card-pill-b-bg/fg swap this used a moment ago, per direct request
+   that every pill on the page read the same regardless of which card
+   (Slate Blue Grey or Warm Off-White) it happens to sit on. */
 .project-card__proof-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  margin: var(--space-xs) 0 var(--space-sm);
 }
 
 .project-card__proof-chips li {
   position: relative;
   font-size: var(--fs-small);
-  color: var(--color-text);
-  background: var(--color-bg-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
+  color: var(--color-warm-off-white);
+  background: var(--color-deep-navy);
   padding: 0.3rem 0.75rem 0.3rem 1.6rem;
 }
 
@@ -594,30 +901,61 @@
   border-radius: 50%;
 }
 
-/* Quiet status line, replacing the previous disabled-button +
-   placeholder-note pair on every card — five identical greyed-out
-   buttons in a row read as unfinished; a plain status line does not. */
-.project-card__status {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: var(--fs-small);
-  color: var(--color-text-muted);
+/* Closing move for each card — the exact same primary waypoint button
+   as the hero's "View My Work" and the nav's Contact button (same
+   classes, same clip-path shape, same JS-drawn ring), just smaller, per
+   direct request to reuse the primary CTA rather than a plain text
+   link. .btn__wrap--primary here is a sibling of .project-card__cta in
+   the flex-column .project-card__body — align-self: flex-start on the
+   WRAP (not the button) is load-bearing: .btn__wrap is inline-flex, but
+   an inline-flex child still gets stretched to the parent's full cross-
+   axis size by the parent's default align-items: stretch, and since
+   this parent is flex-direction: column, that cross axis is WIDTH.
+   Without this override the wrap would stretch full-width and
+   setupWaypointRings() (js/main.js) — which measures the wrap's own
+   clientWidth to draw the ring — would draw a ring far wider than the
+   button actually sitting inside it. (.hero__actions and .main-nav are
+   both row-direction, where stretch only affects height, so this
+   never came up for their own .btn__wrap usage.) */
+.project-card__cta-wrap {
+  align-self: flex-start;
 }
 
-.project-card__status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-slate-blue-grey);
-  flex-shrink: 0;
+/* Genuinely disabled (a real <button disabled>, not a href="#" link
+   that goes nowhere) since the case-study pages this would link to
+   don't exist yet — same honest placeholder pattern as the About
+   section's Resume button, just without a separate .placeholder-note
+   line repeated five times; the title tooltip + .btn--disabled's own
+   dimmed/not-allowed styling carry that same "not ready yet" signal
+   without adding a whole extra line to every card.
+
+   Sized down from the hero/nav version — this is one of five, repeated
+   down the section, not a single page-level anchor, so it needs to
+   read as a quieter closing note rather than matching their full
+   scale. Mirrors exactly how .main-nav__link.btn--waypoint.btn--primary
+   already tightens the same base button for the nav's own smaller
+   context, just with its own numbers for this even smaller use. Glow
+   toned down to match (a full-strength hero-level glow on something
+   this small read as disproportionate next to the button's own size). */
+.project-card__cta.btn--waypoint.btn--primary {
+  font-size: 0.7rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1.6rem;
+  filter: drop-shadow(0 0 8px rgba(252, 163, 17, 0.5));
 }
 
 /* ---- Capability card (What I Do) ------------------------------------------- */
 
 .capability-card {
   background: var(--color-bg-alt);
+  /* #what-i-do's own section background is Slate Blue Grey now, with
+     light text set at the section level for the bare heading above
+     these cards — this card is its own light box regardless of that,
+     so it needs its own explicit dark text rather than inheriting the
+     section's light color into a light-on-light card. */
+  color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   padding: var(--space-card);

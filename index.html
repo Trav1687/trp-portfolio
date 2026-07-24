@@ -92,8 +92,25 @@
           <li><a class="main-nav__link" href="#process">Process</a></li>
           <li><a class="main-nav__link" href="#tools-and-skills">Skills</a></li>
           <li><a class="main-nav__link" href="#about">About</a></li>
-          <li><a class="main-nav__link btn btn--primary" href="#contact">Contact</a></li>
+          <li>
+            <span class="btn__wrap btn__wrap--primary">
+              <a class="main-nav__link btn btn--primary btn--waypoint" href="#contact">Contact</a>
+              <svg class="btn__ring" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path></path></svg>
+            </span>
+          </li>
         </ul>
+        <!--
+          Route-progress track: a dashed line under the plain section
+          links (Work through About, NOT the Contact button — see
+          setupNavProgress() in js/main.js) that fills in orange as you
+          scroll through the matching section, echoing the dashed route
+          line in the hero illustration. Positioned/sized at runtime
+          since the nav's gap is responsive (clamp()), so a fixed CSS
+          width would drift out of sync with the real link positions.
+        -->
+        <div class="nav-progress" aria-hidden="true">
+          <span class="nav-progress__fill"></span>
+        </div>
       </nav>
 
       <button
@@ -150,7 +167,7 @@
         <div class="hero__copy reveal">
           <span class="eyebrow">Travis Peakman</span>
           <p class="hero__role">Design-minded front-end developer</p>
-          <h1>Turning unclear ideas into digital solutions.</h1>
+          <h1>Turning unclear ideas into digital solutions<span class="hero__period">.</span></h1>
           <p class="hero__supporting">
             I take messy ideas and digital problems and turn them into websites, apps,
             and tools that actually work - from first sketch to shipped product.
@@ -170,9 +187,36 @@
     </section>
 
     <!-- ============================= Selected Peaks ============================= -->
+    <!--
+      A pinned/horizontal-scroll version of this section was tried and
+      then explicitly reverted — the user's read, on seeing it working:
+      the rest of the page tells one continuous vertical story (the hero
+      climbs UP the mountain, the nav tracks progress DOWN the page as a
+      route), and a sideways detour through this one section broke that
+      rhythm rather than adding to it ("it's a single page, and we're
+      working the upper mountain and down... the horizontal just kinda
+      feels off"). Back to a plain vertical stack of large project
+      blocks instead, each one full-bleed image + overlay text panel
+      (kept from the pinned version — that part was liked), just laid
+      out as a normal part of the page's own downward scroll rather than
+      locked into its own separate horizontal interlude.
+    -->
     <section id="work" class="peaks">
       <div class="container">
-        <div class="peaks__layout">
+        <!--
+          The header and the first (featured) project card are grouped
+          into one scroll-snap target now, per direct request — scrolling
+          into this section should settle with "Selected Peaks" and
+          Mountainside Millwork both in view together, centered as one
+          screen, rather than the header being scrolled past on its own
+          before the first card gets its own separate centered stop.
+          Every card from here on (rendered into .peaks__track below)
+          centers individually instead. js/main.js renders projects[0]
+          into [data-first-project] and the rest into [data-projects-list]
+          — see renderProjects() there for why the split happens by
+          absolute array index rather than DOM position.
+        -->
+        <div class="peaks__intro-group">
           <div class="peaks__intro reveal">
             <!-- <span class="eyebrow">Selected Work</span> -->
             <h2>Selected Peaks</h2>
@@ -181,10 +225,11 @@
               of digital problems.
             </p>
           </div>
+          <div data-first-project></div>
+        </div>
 
-          <div class="peaks__list" data-projects-list>
-            <!-- Project cards are rendered from js/data.js -->
-          </div>
+        <div class="peaks__track" data-projects-list>
+          <!-- Remaining project cards are rendered from js/data.js -->
         </div>
       </div>
     </section>

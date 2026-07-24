@@ -23,8 +23,18 @@ const projects = [
       "Business-focused structure",
       "Launch and SEO considerations"
     ],
-    image: "assets/images/mountainside-millwork/mountainside-millwork-main-card.png",
+    image: "assets/images/mountainside-millwork/mountainside-millwork-main-card.webp",
     imageAlt: "Mountainside Millwork website homepage shown on desktop",
+    // Real file dimensions (checked directly, not guessed) — used as
+    // the <img> width/height attributes in main.js so the browser's
+    // built-in layout-reservation sizing matches the actual screenshot
+    // instead of a placeholder ratio that doesn't match any of these
+    // five images (they range from nearly-square to 1.64:1 wide).
+    // Replaced 2026-07-24 with a fresh, wider hero-section capture,
+    // resized proportionally (no crop/stretch) to 1400px wide and
+    // converted to WebP.
+    imageWidth: 1400,
+    imageHeight: 837,
     ctaLabel: "View Project Notes",
   },
   {
@@ -42,6 +52,8 @@ const projects = [
     ],
     image: "assets/images/arcane-vault/arcane-vault-main-card.png",
     imageAlt: "Arcane Vault web app dashboard interface",
+    imageWidth: 916,
+    imageHeight: 893,
     ctaLabel: "View Project Notes",
   },
   {
@@ -59,6 +71,8 @@ const projects = [
     ],
     image: "assets/images/valorbot/valorbot-main-card.png",
     imageAlt: "ValorBot system architecture and logging dashboard",
+    imageWidth: 1608,
+    imageHeight: 978,
     ctaLabel: "View Project Notes",
   },
   {
@@ -76,6 +90,12 @@ const projects = [
     ],
     image: "assets/images/table-tracker/table-tracker-main-card.png",
     imageAlt: "Table Tracker mobile dashboard and standings screens",
+    // 398x359 is the CURRENT file's real size — quite low-res for a
+    // full-width card image, and due for a higher-resolution
+    // replacement (Travis is getting a new screenshot). Update these
+    // two numbers to match whenever that file is swapped in.
+    imageWidth: 398,
+    imageHeight: 359,
     ctaLabel: "View Project Notes",
   },
   {
@@ -93,6 +113,8 @@ const projects = [
     ],
     image: "assets/images/ancient-sleep-lore/ancient-sleep-lore-main-card.png",
     imageAlt: "Ancient Sleep Lore brand and channel visual system",
+    imageWidth: 1515,
+    imageHeight: 989,
     ctaLabel: "View Project Notes",
   }
 ];
