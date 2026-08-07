@@ -10,18 +10,19 @@
 
 html {
   scroll-behavior: smooth;
-  /* proximity, not mandatory — mandatory forces the scroll to always
-     land on a snap point, which can fight the user if they're trying to
-     stop somewhere in between (the same "fighting the user's scroll"
-     complaint that got the pinned Selected Peaks section reverted).
-     proximity only pulls the page into alignment when a scroll already
-     comes to rest close to a snap point, so it adds a bit of "this
-     settled into place for you" polish without ever overriding where
-     someone's actually trying to stop. Only elements that opt in with
-     scroll-snap-align (currently just .project-card, in components.css)
-     become snap points — this alone doesn't change how any other
-     section behaves. */
-  scroll-snap-type: y proximity;
+  /* scroll-snap-type: y proximity used to live here, making every
+     top-level section and project card a snap point (components.css,
+     layout.css). Turned off per direct request ("take out the
+     scrolling lock") while the rest of the content/design gets
+     cleaned up first — snapping is something to revisit deliberately
+     later, not mid-cleanup. Removing it HERE (the one property that
+     actually turns snapping on for the whole page) is enough on its
+     own: every individual scroll-snap-align/scroll-snap-stop/
+     scroll-margin-top declaration elsewhere is inert without a
+     scroll-snap-type ancestor, so they're left in place rather than
+     stripped out piecemeal across three files — turning snapping back
+     on later, if that's the direction, is just restoring this one
+     line. */
 }
 
 body {
