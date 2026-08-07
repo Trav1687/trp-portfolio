@@ -170,10 +170,14 @@
   padding-bottom: 0.7rem;
   padding-left: 1.5rem;
   padding-right: 2.2rem;
-  /* The stronger glow (was :hover-only) is the default now. */
-  filter: drop-shadow(0 0 16px rgba(252, 163, 17, 0.75));
+  /* The glow lives on .btn__wrap--primary now, NOT here — this element
+     has a clip-path, and clip-path is applied after filter, so a
+     drop-shadow set here was generated and then clipped away by the
+     button's own pointed outline. The wrapper has no clip-path, and
+     drop-shadow follows descendant alpha, so the glow still traces this
+     button's exact silhouette from there. */
   transition: transform var(--transition-base), background var(--transition-base),
-    color var(--transition-base), filter var(--transition-base);
+    color var(--transition-base);
   /* Full outer clip-path (was :hover-only) is the default now — the
      ring is hidden by default (see .btn__wrap--primary .btn__ring
      below) so there's no gap for it to occupy at rest. */
@@ -250,11 +254,20 @@
   );
 }
 
-.btn--waypoint.btn--primary:hover {
+/* .is-active is included alongside :hover throughout this block so the
+   nav's Contact button holds its hover appearance the whole time the
+   Contact section is on screen — the end of the route staying lit once
+   you arrive, rather than the button looking untouched at the exact
+   moment it becomes relevant.
+   setupActiveSectionNav() (js/main.js) already applied .is-active to
+   this button; it simply had no styling, since the existing
+   .main-nav__link.is-active rule only changes text colour and is written
+   for the plain links. */
+.btn--waypoint.btn--primary:hover,
+.btn--waypoint.btn--primary.is-active {
   background: var(--color-accent);
   color: var(--color-deep-navy);
-  /* The dimmer glow (was the default) is what hover reverts to now. */
-  filter: drop-shadow(0 0 10px rgba(252, 163, 17, 0.45));
+  /* Glow handled on .btn__wrap--primary:hover — see the note above. */
   /* Reinstates the 3px-inset clip-path (was the default) on hover — the
      ring becomes visible on hover now (.btn__wrap--primary:hover
      .btn__ring below), and needs this gap to occupy, same as it always
@@ -271,7 +284,8 @@
   );
 }
 
-.btn--waypoint.btn--primary:hover::after {
+.btn--waypoint.btn--primary:hover::after,
+.btn--waypoint.btn--primary.is-active::after {
   /* Hides the navy patch on hover now (was opacity: 1 by default) —
      hover reveals the plain orange fill + Charcoal ring instead, wiped
      away top-to-bottom by the mask-position transition above. */
@@ -424,6 +438,36 @@
   display: inline-flex;
 }
 
+/* The primary CTA's Trail Orange glow. It sits on this wrapper rather
+   than on the button, because the button carries a clip-path and
+   clip-path is applied AFTER filter — a drop-shadow set on the button
+   was drawn and then clipped away by the button's own outline, so the
+   glow never actually rendered at any strength. This wrapper has no
+   clip-path, and drop-shadow reads an element's rendered alpha including
+   descendants, so the glow still follows the button's pointed silhouette
+   exactly. Default is the stronger glow; hover softens it, matching the
+   swapped default/:hover styling the button itself uses.
+
+   Values pulled well back (16px/0.75 to 9px/0.38) once the clipping fix
+   above made the glow actually render for the first time. The original
+   numbers were set while it was invisible and had been pushed up trying
+   to make something show — unclipped, they were far too hot on both the
+   hero and nav CTAs. */
+.btn__wrap--primary {
+  filter: drop-shadow(0 0 9px rgba(252, 163, 17, 0.38));
+  transition: filter var(--transition-base);
+}
+
+/* :has() so the wrapper can react to its own button being active —
+   .is-active is set on the <a>, not on this span. Falls back gracefully:
+   in a browser without :has() support the whole selector is dropped, and
+   the button still shows its active fill from the rules above; only the
+   glow softening is lost. */
+.btn__wrap--primary:hover,
+.btn__wrap--primary:has(.btn--primary.is-active) {
+  filter: drop-shadow(0 0 6px rgba(252, 163, 17, 0.24));
+}
+
 /* Sized and drawn at runtime by setupWaypointRings() (js/main.js) to
    match the button's actual rendered box — a fixed viewBox would drift
    out of sync with the real box on resize/zoom, the same reason the
@@ -496,6 +540,13 @@
 
 /* ---- Route marker / wayfinding accents ------------------------------------- */
 
+/* NOTE: .route-marker currently has no markup using it. It was the
+   circular numbered badge in both What I Do and Process; the What I Do
+   panels dropped their numbers, and Process moved to an editorial ruled
+   list where a filled badge read as a leftover UI chip next to plain
+   type. Kept rather than deleted — it's a small, self-contained piece of
+   the site's wayfinding language that any future numbered section can
+   pick straight back up. */
 .route-marker {
   display: inline-flex;
   align-items: center;
@@ -531,6 +582,15 @@
 .section-heading {
   max-width: 40rem;
   margin-bottom: var(--space-xl);
+}
+
+/* Tighter than the site-wide --space-xl (4rem) below the heading. This
+   section is a dense reference list that has to fit on one screen, and
+   the legend directly beneath the heading is closely related to it — the
+   intro line literally tells you to use it — so the full section-heading
+   gap read as a disconnect as well as costing height. */
+#tools-and-skills .section-heading {
+  margin-bottom: var(--space-md);
 }
 
 /* ---- Project card ----------------------------------------------------------- */
@@ -574,41 +634,48 @@
      which keeps only a bumped title size as its one remaining, much
      quieter emphasis). */
   padding: var(--space-card);
-  /* Slate Blue Grey / Warm Off-White by default, overridden by
-     .project-card--alt below — driven by a markup-level class (set in
-     js/main.js from each project's absolute position in the data), not
-     nth-child, since the first project now renders into its own
-     container outside .peaks__track (see .peaks__intro-group in
-     css/layout.css) and nth-child would recount incorrectly from
-     whichever project ends up first inside .peaks__track. color-mix,
-     not a plain solid color, lets a bit of the section's own
-     topo-pattern background show through the card itself, so it reads
-     as sitting slightly on top of that texture rather than fully
-     masking it — only the card's own background is see-through here;
-     the image and text sitting on top of it stay fully opaque. */
-  --card-bg: color-mix(in srgb, var(--color-slate-blue-grey) 80%, transparent);
+  /* Every card is the same Slate Blue Grey now, per direct request —
+     the alternating Slate Blue Grey / Warm Off-White pattern is gone
+     (see .project-card--alt below, which still drives the image-side
+     alternation, just no longer the colour).
+
+     color-mix, not a plain solid colour, lets some of the section's own
+     topo-pattern show through the card, so it reads as sitting on that
+     texture rather than fully masking it — only the card's own fill is
+     see-through here; the image and text on top of it stay opaque.
+
+     THIS ELEMENT DELIBERATELY HAS NO clip-path AND NO BACKGROUND. Both
+     live on pseudo-elements below: ::before draws the Deep Navy ring in
+     the outer chamfer shape, ::after the card fill inset 2px inside it.
+
+     That split exists because clip-path is applied AFTER filter in the
+     rendering order. With the chamfer on this element, its own
+     drop-shadow (see the scroll-focus rules further down) was generated
+     and then immediately clipped away by that same chamfer — the shadow
+     fell outside the polygon, so none of it survived, and no amount of
+     strengthening it made any difference. Keeping this element unclipped
+     lets the shadow render, and because drop-shadow follows the rendered
+     alpha of an element INCLUDING its descendants, it still traces the
+     chamfered silhouette that ::before draws.
+
+     The ring itself can't be a real border for the usual reason: a
+     stroke is traced against the original rectangle and then cut at an
+     angle it was never drawn to fit. position/z-index establish the
+     stacking context both patches sit behind. */
+  position: relative;
+  z-index: 0;
+  /* Deep Navy at 80%, matching the Process and About cards — same fill,
+     same Soft Sand ring, so every card sitting on the topo map is one
+     component. Was Slate Blue Grey at 90%. */
+  --card-bg: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
   --card-fg: var(--color-warm-off-white);
-  background: var(--card-bg);
   color: var(--card-fg);
   /* No border-radius/mask fade (both dropped per earlier direct
      feedback) — instead the same 0.5rem chamfer as the image inside it
-     and the .btn--waypoint CTAs, on every project card now. Started as
-     a featured-card-only treatment, then extended to all of them per
-     direct request ("add the style from the first card to the rest of
-     them") — the size/emphasis difference (taller min-height, bigger
-     title) stays unique to .project-card--featured below; this shape
-     is now shared by every card. */
+     and the .btn--waypoint CTAs, on every project card now. The shape is
+     drawn by ::before/::after below rather than on this element, so the
+     card's drop-shadow isn't clipped away; see the note above. */
   --card-chamfer: 0.5rem;
-  clip-path: polygon(
-    var(--card-chamfer) 0%,
-    calc(100% - var(--card-chamfer)) 0%,
-    100% var(--card-chamfer),
-    100% calc(100% - var(--card-chamfer)),
-    calc(100% - var(--card-chamfer)) 100%,
-    var(--card-chamfer) 100%,
-    0% calc(100% - var(--card-chamfer)),
-    0% var(--card-chamfer)
-  );
   /* Opts this element in as a scroll-snap target (scroll-snap-type: y
      proximity lives on html in global.css, off for reduced motion) —
      when a scroll comes to rest near a project, the page settles so its
@@ -639,12 +706,148 @@
   scroll-margin-top: 5rem;
 }
 
+/* The ring: the card's full outer shape. Lives here rather than as a
+   background on .project-card itself so that element can stay unclipped
+   and cast a real shadow — see the note on .project-card.
+
+   Soft Sand, matching the Process cards. These two sections share one
+   continuous topo map, so a ring that changes colour between them
+   undercuts the match-book effect the map is doing. It's also simply
+   more visible: navy on this Slate Blue Grey fill was only about 2.4:1,
+   barely reading as a ring at all, where Soft Sand is around 4.2:1. */
+.project-card::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background: var(--color-border);
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+}
+
+/* The card's actual fill, inset 2px so the ring behind it stays visible.
+   Same 2px inset and chamfer + 0.83px perpendicular correction on the
+   diagonals used everywhere else this technique appears (a 45° edge
+   offset by 2px moves 2px * (√2 − 1) ≈ 0.83px along each axis, not 2px).
+
+   Semi-transparent, so the topo map shows through the card. The ring
+   behind is opaque navy, so the 10% that passes through here lands on
+   the section background rather than tinting the ring. */
+.project-card::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--card-bg);
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.83px) 2px,
+    calc(100% - var(--card-chamfer) - 0.83px) 2px,
+    calc(100% - 2px) calc(var(--card-chamfer) + 0.83px),
+    calc(100% - 2px) calc(100% - var(--card-chamfer) - 0.83px),
+    calc(100% - var(--card-chamfer) - 0.83px) calc(100% - 2px),
+    calc(var(--card-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--card-chamfer) - 0.83px),
+    2px calc(var(--card-chamfer) + 0.83px)
+  );
+}
+
 /* Opts out of the individual center-snap above — this card now shares
    .peaks__intro-group's own single snap-align: center stop together
    with the "Selected Peaks" header (css/layout.css), rather than
    getting a second, separate stop of its own directly underneath it. */
 .project-card--featured {
   scroll-snap-align: none;
+}
+
+/* ---- Scroll-focus: whichever card is nearest the viewport centre ----------
+   Adapted from a reference snippet: cards sit dimmed and slightly
+   shrunk, and the one closest to the middle of the screen lifts to full
+   presence, so scrolling reads like hovering each card in turn without
+   touching the mouse. Recoloured to brand — the reference's cyan/indigo/
+   purple active gradient is dropped entirely; the focus state is carried
+   by presence (scale, opacity, a Trail Orange glow) rather than by a
+   colour change, which also means it survived these cards collapsing
+   from two alternating colours down to one shared blue.
+
+   Only applies under .is-scroll-focus, a class setupProjectScrollFocus()
+   (js/main.js) adds to the section at runtime. Without JS — or under
+   prefers-reduced-motion, where that function bails out — the class is
+   never added and every card simply renders at full presence, exactly as
+   before. Same fail-safe structure as .reveal/.reveal--pending in
+   global.css: the dimming is opt-in, never the default state.
+
+   Two deliberate property choices, both to avoid colliding with .reveal:
+
+   1. `scale` and `filter: opacity()`, NOT `transform` and `opacity`.
+      Project cards also carry .reveal, whose --pending state animates
+      transform and opacity — and that class is never removed once the
+      card becomes visible, so both properties stay spoken for. `scale`
+      is an independent property that composes with reveal's translate
+      instead of overwriting it, and filter's own opacity() does the
+      dimming without touching the opacity property at all.
+   2. The transition below re-declares reveal's opacity/transform timings
+      alongside the new ones. This rule (0,3,0, in a later stylesheet)
+      outranks .reveal.reveal--pending, so it replaces that transition
+      wholesale rather than adding to it — leaving them out would
+      silently kill the reveal fade-in on these five cards.
+
+   The inactive state scales DOWN and the active state rests at 1,
+   rather than the reference's scale(1.04) on the active card: these
+   cards run to the full width of the container, so scaling the active
+   one past 100% would push it past the layout and risk a horizontal
+   scrollbar. Same relative effect, no overflow. */
+/* Resting cards get a small, tight shadow of their own on top of the
+   dimming — a recessed card still sits on the page, and giving it no
+   shadow at all made the focused card's shadow appear from nothing
+   rather than growing. Chained after opacity() so both apply; filter
+   functions compose left to right. */
+.peaks.is-scroll-focus .project-card {
+  scale: 0.965;
+  /* Same hard-edged character as the focused shadow below, just a much
+     shorter drop — a resting card sits close to the map, so its shadow
+     stays tucked under it. Keeping the two consistent in STYLE and
+     varying only the distance is what makes the focus change read as the
+     card rising rather than as the shadow changing type. */
+  filter: opacity(0.5) drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.35));
+  transition: opacity var(--transition-slow), transform var(--transition-slow),
+    scale 450ms cubic-bezier(0.22, 0.61, 0.36, 1), filter 450ms ease;
+  will-change: scale, filter;
+}
+
+.peaks.is-scroll-focus .project-card.is-focused {
+  scale: 1;
+  /* Drops the dimming opacity() — an active card is at full strength, so
+     all that's left is the lift.
+
+     A single hard-edged shadow with almost no blur — the cut-paper look,
+     starting from a value given directly (drop-shadow(0 7px 2px #000)),
+     then offset equally right as well as down so it falls as an L along
+     the bottom and right edges rather than only underneath, and finally
+     pulled back to roughly half that distance — 7px read as too much
+     separation for a card this size.
+     This is deliberately NOT the soft multi-layer stack that was here
+     before: that approach simulates real diffuse light, which on a flat
+     illustrated map reads as haze rather than as a card lifted off a
+     surface. A near-solid offset shape reads as graphic elevation
+     instead, which suits the map.
+
+     Kept as one layer for the same reason. Stacking a second, softer
+     shadow underneath would immediately reintroduce the blur this is
+     meant to avoid.
+
+     drop-shadow, not box-shadow: the chamfer is drawn by clip-path on
+     ::before, and box-shadow traces the original rectangle, so it would
+     poke square corners out past the cut ones. That matters more here
+     than with a soft shadow — at 2px blur any mismatch is obvious. */
+  filter: drop-shadow(4px 4px 2px rgba(0, 0, 0, 0.85));
 }
 
 @media (min-width: 640px) {
@@ -668,25 +871,21 @@
   }
 }
 
-/* Alternates each project's own card color — Slate Blue Grey, Warm
-   Off-White, Slate Blue Grey, Warm Off-White — instead of one uniform
-   section background. The default pair (Slate Blue Grey / Warm
-   Off-White) is defined up on .project-card itself, alongside its other
-   base properties; this just overrides that pair for every other
-   project. Driven by the same markup-level --alt class as the
-   image-side alternation above, for the same reason (nth-child would
-   recount incorrectly once the first project moved into its own
-   container).
+/* .project-card--alt used to override --card-bg/--card-fg here, giving
+   the section an alternating Slate Blue Grey / Warm Off-White rhythm.
+   Removed per direct request that every card share the one blue; the
+   colour now lives entirely on .project-card above.
 
-   Proof-point pills used to swap color to match whichever card variant
-   they sat on (light neutrals on the dark cards, dark neutrals on the
-   light cards) — now fixed Deep Navy on every card regardless, per
-   direct request, so every pill on the page reads identically instead
-   of alternating with the card background. */
-.project-card--alt {
-  --card-bg: color-mix(in srgb, var(--color-warm-off-white) 80%, transparent);
-  --card-fg: var(--color-text);
-}
+   The class itself is still doing real work — it drives which side the
+   image sits on (see the media query above) — so it stays, and it stays
+   set from each project's absolute index in js/main.js rather than
+   nth-child, since the first project renders into its own container
+   outside .peaks__track and nth-child would recount from whichever
+   project happens to land first inside that track.
+
+   Proof-point pills were already fixed Deep Navy on every card rather
+   than swapping with the card variant, so nothing about them needed to
+   change when the variants collapsed into one. */
 
 /* A minimal browser-window frame (a Charcoal bar with three dots above
    the screenshot) was tried here and reverted — didn't land visually,
@@ -770,9 +969,14 @@
    floor. Title size stays bumped (see below) as the one remaining, much
    quieter way this card still reads as the section's strongest proof
    piece, without reintroducing empty space to do it. */
-.project-card--featured h3 {
-  font-size: var(--fs-h2);
-}
+/* The featured card's larger title is gone — every project title is now
+   the same size (see .project-card__body h3). Mountainside Millwork no
+   longer reads as visually louder than the rest.
+
+   .project-card--featured still exists as a class and still does one
+   job: it opts the card out of the individual scroll-snap alignment
+   (above), since it shares a snap stop with the section header. The
+   `featured: true` flag in js/data.js is what sets it. */
 
 /* No boxed panel on this side anymore — only the image is its own
    contained block now (see .project-card__media); the text sits
@@ -783,14 +987,19 @@
    behind it to contrast against anymore.
 
    justify-content: center balances the text block vertically within
-   whatever height the row ends up (set by .project-card's min-height
-   above, via the default align-items: stretch on both grid columns) —
-   without it, a short project (fewer proof points, shorter description)
-   would leave the text sitting awkwardly high with empty space
-   underneath, instead of feeling centered/composed regardless of how
-   much content there is. max-height/overflow-y: auto stay as a safety
-   net for the rare case a long description still doesn't fit at a
-   short viewport height, rather than silently clipping. */
+   whatever height the row ends up (usually set by the image column) —
+   without it, a short project would leave the text sitting high with
+   empty space underneath.
+
+   space-between was tried here, to spread the content down the full
+   column height, and reverted: it makes the gaps depend on how much
+   spare room a given card happens to have, so the rhythm changes from
+   card to card. Centring keeps every gap at exactly the `gap` value
+   below on every card, which is the consistency that matters more.
+
+   max-height/overflow-y: auto stay as a safety net for the rare case a
+   long description doesn't fit at a short viewport, rather than
+   silently clipping. */
 .project-card__body {
   position: relative;
   z-index: 1;
@@ -818,7 +1027,29 @@
      background color. */
 }
 
+/* One shared size for every project title, halfway between the scale the
+   featured card used (--fs-h2) and the one the others inherited from
+   global h3 (--fs-h3) — literally the midpoint of both clamps:
+
+     --fs-h2  clamp(1.75rem, 3vw   + 1rem, 2.75rem)
+     --fs-h3  clamp(1.25rem, 1.5vw + 1rem, 1.65rem)
+     here     clamp(1.5rem,  2.25vw + 1rem, 2.2rem)
+
+   Interpolating all three values, rather than just the max, keeps the
+   title scaling across viewports the way the two originals did instead
+   of snapping to a fixed size at some breakpoint. */
 .project-card__body h3 {
+  margin-bottom: 0;
+  font-size: clamp(1.5rem, 2.25vw + 1rem, 2.2rem);
+}
+
+/* Zeroes the global p margin (0 0 var(--space-sm)) inside the card.
+   .project-card__body spaces its children with a flex `gap`, and a
+   margin on top of that ADDS to it — so the description was sitting
+   2.25rem above the chips (1.25rem gap + 1rem inherited margin) while
+   every other pair in the column was 1.25rem apart. Same reasoning as
+   the h3 rule above, which was already zeroed for exactly this. */
+.project-card__body p {
   margin-bottom: 0;
 }
 
@@ -879,14 +1110,56 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  /* Centres each wrapped row. Combined with the longest-first ordering
+     from sortChipsWidestFirst() (js/main.js), the rows taper from widest
+     at the top to narrowest at the bottom instead of leaving a ragged
+     right edge. */
+  justify-content: center;
 }
 
+/* A solid navy chip with a Soft Sand outline — the outline is what makes
+   it read, not the fill.
+
+   Neither of the obvious fills works here. Deep Navy (what these were)
+   disappears into the card now that the card is also navy. Slate Blue
+   Grey looks like the answer, but the card at 80% navy over the light
+   section resolves to about #424C61, which is within 1.3:1 of Slate —
+   near-identical in tone. Outlining sidesteps the problem entirely and
+   matches the ring language used on every card.
+
+   Ring is drawn with the inset-patch technique rather than a real
+   border: these chips are chamfered, and clip-path severs a border
+   stroke at every cut corner. Background here is the ring; ::after
+   below carries the interior. */
 .project-card__proof-chips li {
   position: relative;
+  z-index: 0;
   font-size: var(--fs-small);
   color: var(--color-warm-off-white);
-  background: var(--color-deep-navy);
+  background: var(--color-border);
   padding: 0.3rem 0.75rem 0.3rem 1.6rem;
+}
+
+/* Interior, inset 1px. Fully opaque Deep Navy rather than the card's
+   translucent mix — a translucent patch would let the sand ring bleed
+   through and tint the whole chip. 1px inset means the diagonals shift
+   by 1px * (√2 − 1) ≈ 0.41px, the perpendicular offset for a 45° edge. */
+.project-card__proof-chips li::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--color-deep-navy);
+  clip-path: polygon(
+    calc(var(--pill-chamfer) + 0.41px) 1px,
+    calc(100% - var(--pill-chamfer) - 0.41px) 1px,
+    calc(100% - 1px) calc(var(--pill-chamfer) + 0.41px),
+    calc(100% - 1px) calc(100% - var(--pill-chamfer) - 0.41px),
+    calc(100% - var(--pill-chamfer) - 0.41px) calc(100% - 1px),
+    calc(var(--pill-chamfer) + 0.41px) calc(100% - 1px),
+    1px calc(100% - var(--pill-chamfer) - 0.41px),
+    1px calc(var(--pill-chamfer) + 0.41px)
+  );
 }
 
 .project-card__proof-chips li::before {
@@ -918,7 +1191,25 @@
    both row-direction, where stretch only affects height, so this
    never came up for their own .btn__wrap usage.) */
 .project-card__cta-wrap {
-  align-self: flex-start;
+  /* Centred, finishing the taper the chips above start: the rows narrow
+     going down and the CTA is the point of the pyramid. Was flex-start.
+
+     An explicit align-self value is load-bearing either way, and `center`
+     satisfies the same requirement flex-start did — .btn__wrap is
+     inline-flex, and this parent is a flex COLUMN, so the default
+     align-items: stretch would stretch the wrap across the full width.
+     setupWaypointRings() (js/main.js) measures that wrap's own
+     clientWidth to draw the ring, so a stretched wrap draws a ring far
+     wider than the button inside it. Any value other than stretch avoids
+     that; only the alignment changed here. */
+  align-self: center;
+  /* Restored alongside the revert to justify-content: center above. With
+     space-between the body opened this gap on its own and this margin
+     was redundant; centring doesn't, so it's needed again — the CTA is a
+     separate action, not the last item in the proof-point list, and at
+     the shared gap alone it read as part of that group. This is the one
+     deliberate exception to the otherwise uniform 1.25rem rhythm. */
+  margin-top: 0.75rem;
 }
 
 /* Genuinely disabled (a real <button disabled>, not a href="#" link
@@ -943,31 +1234,188 @@
   padding-bottom: 0.5rem;
   padding-left: 1rem;
   padding-right: 1.6rem;
-  filter: drop-shadow(0 0 8px rgba(252, 163, 17, 0.5));
+}
+
+/* Toned-down glow for the project cards' smaller CTA. On the wrap, not
+   the button, for the same clip-path-after-filter reason as the full-size
+   primary above — and it has to override .btn__wrap--primary, hence the
+   two-class selector.
+
+   Pulled down alongside the hero/nav glow: at its previous 8px/0.5 it
+   would have ended up the strongest glow on the page while sitting on
+   the smallest button, which is backwards. Kept a step below the
+   full-size CTAs so scale and emphasis stay in the same order. */
+.project-card__cta-wrap.btn__wrap--primary,
+.project-card__cta-wrap.btn__wrap--primary:hover {
+  filter: drop-shadow(0 0 6px rgba(252, 163, 17, 0.28));
 }
 
 /* ---- Capability card (What I Do) ------------------------------------------- */
 
+/* Brought in line with the rest of the site's own visual language
+   (the chamfered cut-corner shape shared by every project card/image/
+   pill, and the same route-marker badge Process already uses for its
+   own numbered steps) — this card used to be a plain bordered, fully
+   rounded box with a bare "01" text label, from before that shape
+   language existed. Per direct request ("I wanted to kind of have the
+   design vibe of the rest of the website"). */
 .capability-card {
-  background: var(--color-bg-alt);
+  /* Deep Navy now (was Trail Orange — swapped per direct feedback,
+     "don't like the orange"), not the plain Warm Off-White this used to
+     be flatly filled with — this element's own background is what
+     shows through as the thin border ring below (::after sits inset on
+     top of it, covering everything except a 2px margin all the way
+     around). position/z-index establish the stacking context the
+     inset patch (z-index: -1) needs so it paints BEHIND this card's own
+     in-flow content (route-marker, h3, p) without a stray z-index on
+     any of them — same mechanism already used for
+     .btn--waypoint.btn--primary::after, see that rule's own comment for
+     the full reasoning. */
+  position: relative;
+  z-index: 0;
+  background: var(--color-deep-navy);
+  /* filter: drop-shadow, not box-shadow — box-shadow is computed
+     against the element's plain rectangular border-box and THEN gets
+     clipped by clip-path along with everything else, so it'd show up
+     as a shadow with square corners poking past this shape's actual
+     chamfered silhouette. drop-shadow operates on the rendered result's
+     real alpha shape instead (the same reason it's used for the hero
+     CTA's glow), so it follows the chamfer correctly with no extra
+     math needed.
+
+     Bumped up from an initial Deep Navy-tinted, 12px/6px version that
+     turned out basically invisible — Deep Navy against this section's
+     own Slate Blue Grey background is too close in tone for a
+     navy-on-navy shadow to read as a shadow at all. Plain black at
+     higher opacity gives it the contrast a tinted shadow couldn't,
+     and the bigger 24px blur / 14px offset gives it enough spread to
+     actually notice at a glance instead of hugging the edge. */
+  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.45));
   /* #what-i-do's own section background is Slate Blue Grey now, with
      light text set at the section level for the bare heading above
      these cards — this card is its own light box regardless of that,
      so it needs its own explicit dark text rather than inheriting the
      section's light color into a light-on-light card. */
   color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
   padding: var(--space-card);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
+  /* No border-radius/border anymore — same reasoning as .project-card:
+     a real border doesn't survive being clipped at a diagonal edge
+     cleanly (a straight stroke traced against the box's ORIGINAL
+     rectangular shape, then clipped afterward at an angle it was never
+     drawn to fit — confirmed as a visible jagged corner back when this
+     was first tried on .btn--waypoint). The small orange border below
+     is drawn the same inset-patch way that button's own ring is, for
+     exactly that reason. Same --card-chamfer size (0.5rem) as every
+     other chamfered shape on the page — a consistent SIZE, not a
+     proportional one, is what reads as the same motif repeating rather
+     than a different, unrelated shape. */
+  --card-chamfer: 0.5rem;
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
 }
 
-.capability-card__index {
-  font-family: var(--font-display);
-  color: var(--color-accent);
-  font-size: var(--fs-small);
+/* The small navy border itself: a 2px-inset Warm Off-White patch
+   sitting on top of the card's own Deep Navy background (above), so
+   the only navy left visible is the 2px margin the patch doesn't
+   cover. Traces its own smaller version of the same octagon
+   .capability-card clips to, rather than an actual `border` — the
+   diagonal corners get
+   inset PERPENDICULAR to themselves (chamfer + 0.83px, not chamfer +
+   2px, since a 45° edge's perpendicular offset for a 2px inset works
+   out to 2px * (√2 − 1) ≈ 0.83px), which is the exact math already
+   worked out for .btn--waypoint.btn--primary::after — reused as-is
+   here rather than re-derived, since it's the same 2px inset at the
+   same 45° chamfer angle. Two independently-clipped elements can never
+   quite agree on where "the same" diagonal line falls once
+   anti-aliased (confirmed repeatedly on that button), so this patch's
+   own edge sits a full 2px inside the card's outer edge everywhere,
+   with no shared boundary for the two to disagree about. */
+.capability-card::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  /* inset: 0 (the full card box), not inset: 2px — the 2px margin is
+     entirely the clip-path polygon's own doing (each coordinate below
+     is already offset 2px in from this box's own edge); insetting the
+     BOX itself by 2px on top of that would double the margin. */
+  inset: 0;
+  background: var(--color-bg-alt);
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.83px) 2px,
+    calc(100% - var(--card-chamfer) - 0.83px) 2px,
+    calc(100% - 2px) calc(var(--card-chamfer) + 0.83px),
+    calc(100% - 2px) calc(100% - var(--card-chamfer) - 0.83px),
+    calc(100% - var(--card-chamfer) - 0.83px) calc(100% - 2px),
+    calc(var(--card-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--card-chamfer) - 0.83px),
+    2px calc(var(--card-chamfer) + 0.83px)
+  );
+}
+
+/* Staggers each card's own .reveal fade-in (css/global.css) so they
+   settle in one after another instead of all at once — the four sit
+   side by side in one row at 640px+, so the shared IntersectionObserver
+   in setupScrollReveal() (js/main.js) crosses its 15% threshold for all
+   four in the same instant by default, and a plain transition-delay per
+   card is enough to spread that single moment out into a short
+   left-to-right sequence, no JS timing changes needed. Capped at 4
+   values (matching the 4 real cards) rather than written as a generic
+   nth-child(n) formula — this section's count is fixed by the data in
+   js/data.js, not something that grows arbitrarily. Under
+   prefers-reduced-motion this is inert: setupScrollReveal() never adds
+   reveal--pending in the first place there, so there's no transition
+   for a delay to apply to.
+
+   Also overrides the fade/slide's own duration (600ms, up from the
+   site-wide --transition-slow's 420ms) specifically for these cards —
+   slower per direct request ("can we slow it down a little bit"), but
+   scoped here rather than raising --transition-slow itself, which
+   would've also slowed down every unrelated thing sharing that same
+   variable (the hero CTA's hover wipe, etc.). Delay gaps widened to
+   150ms (from 90ms) to match the slower pace proportionally, so the
+   whole four-card sequence still reads as one deliberate cascade
+   rather than the longer individual fades starting to overlap. */
+.capability-card.reveal.reveal--pending {
+  transition-duration: 600ms;
+}
+
+.capability-card:nth-child(1) {
+  transition-delay: 0ms;
+}
+
+.capability-card:nth-child(2) {
+  transition-delay: 150ms;
+}
+
+.capability-card:nth-child(3) {
+  transition-delay: 300ms;
+}
+
+.capability-card:nth-child(4) {
+  transition-delay: 450ms;
+}
+
+/* Reuses .route-marker as-is (same circular Deep Navy badge + Trail
+   Orange ring Process already uses for its own numbered steps, see
+   below) rather than the old bare "0${index}" text label — ties the
+   two "numbered list" sections (What I Do, Process) to the same visual
+   language instead of each inventing its own numbering treatment.
+   margin-bottom substitutes for the gap this used to get for free by
+   just being a plain inline text sibling in the same flex column;
+   .route-marker itself doesn't know it's sitting in a card here. */
+.capability-card .route-marker {
+  margin-bottom: 0.25rem;
 }
 
 .capability-card p {
@@ -976,19 +1424,504 @@
   margin-bottom: 0;
 }
 
-/* ---- Process step ----------------------------------------------------------- */
+/* ---- Capability step (What I Do timeline trial) ---------------------------- */
 
-.process-step {
+/* Mirrors .process-step's own structure/behavior below (route-marker
+   sibling + a content wrapper for title/description, row on desktop,
+   column on mobile) — the old boxed .capability-card rules above are
+   left in place, unused, as the revert path if this trial doesn't land
+   (see the comment on renderCapabilities() in js/main.js). */
+.capability-step {
   display: flex;
   gap: var(--space-md);
   position: relative;
   flex: 1;
 }
 
-.process-step__content {
+.capability-step__content {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+}
+
+.capability-step__content h3 {
+  margin-bottom: 0;
+}
+
+/* No card behind this text anymore, so it sits directly on #what-i-do's
+   own Slate Blue Grey background (layout.css) — Soft Sand rather than
+   --color-text-muted (a dark gray meant for light card backgrounds,
+   which would be nearly unreadable here) for the description, matching
+   how .hero__supporting handles the same "muted text on the dark/cool
+   background" situation elsewhere on the page. */
+.capability-step p {
+  color: var(--color-soft-sand);
+  font-size: var(--fs-small);
+  margin-bottom: 0;
+}
+
+@media (min-width: 1080px) {
+  .capability-step {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Same staggered reveal-in timing the boxed cards used (see the removed
+   .capability-card rules above for the original reasoning) — just
+   retargeted at the new class so the four items still settle in one
+   after another left to right instead of all snapping in at once. */
+.capability-step.reveal.reveal--pending {
+  transition-duration: 600ms;
+}
+
+.capability-step:nth-child(1) {
+  transition-delay: 0ms;
+}
+
+.capability-step:nth-child(2) {
+  transition-delay: 150ms;
+}
+
+.capability-step:nth-child(3) {
+  transition-delay: 300ms;
+}
+
+.capability-step:nth-child(4) {
+  transition-delay: 450ms;
+}
+
+/* ---- Capability panel (What I Do bento hover-expand trial) ----------------- */
+
+/* Reuses the same Deep Navy fill + inset Warm Off-White border-patch +
+   drop-shadow + chamfer shape the original .capability-card used (see
+   that rule above for the full reasoning on each of those) — the bento
+   trial changes how the row of panels behaves, not the individual
+   panel's own material/color, so it should still clearly read as "the
+   same card language" as everywhere else on the page. */
+.capability-panel {
+  position: relative;
+  z-index: 0;
+  color: var(--color-warm-off-white);
+  /* NO clip-path and NO background on this element — both moved to the
+     pseudo-elements below. clip-path is applied AFTER filter in the
+     rendering order, so with the chamfer here this drop-shadow was
+     generated and then clipped straight off by that same chamfer, since
+     a shadow by definition falls outside the shape casting it. The
+     shadow was never visible at any strength. Unclipped, it renders, and
+     because drop-shadow follows an element's rendered alpha INCLUDING
+     descendants, it still traces the chamfered silhouette ::before
+     draws. */
+  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.45));
+  padding: var(--space-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  --card-chamfer: 0.5rem;
+  /* No native focus outline of its own — .capability-panel itself gets
+     tabindex="0" (js/main.js) so keyboard users can trigger the same
+     hover-expand via :focus-within below, and global.css's
+     [tabindex]:focus-visible rule already draws the site's standard
+     orange focus ring for that, so nothing extra is needed here. */
+}
+
+
+/* Deep Navy, doing two jobs at once. Clipped to the card's FULL outer
+   chamfer (it used to be inset 2px, matching ::before): since ::before
+   above carries the artwork inset by 2px, the 2px of this layer left
+   uncovered around the edge IS the ring. One navy layer, no third
+   element needed — which matters, because both pseudo-elements are
+   already spoken for and the ring had to move off .capability-panel
+   itself for the drop-shadow to survive (see the note on that rule).
+
+   It's also what the artwork's remaining 5% opacity blends into, and the
+   fallback face if the image fails to load. Deep Navy rather than the
+   Warm Off-White this was while the panel was a light card: off-white
+   would show as a pale haze through the image, and as a jarring white
+   card on failure. */
+.capability-panel::after {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background-color: var(--color-deep-navy);
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+}
+
+/* Continuous mountain-range artwork (assets/patterns/capability-mountains.svg)
+   sits on this separate ::before layer, on top of ::after's solid card
+   face but below the in-flow content (z-index: -1, versus ::after's -2)
+   — same inset/clip-path shape as ::after so the art is clipped to the
+   card's own chamfered interior, not the plain rectangular box.
+
+   mask-image fades the art out toward the bottom of the card — added
+   after the tree line was found to visibly compete with the description
+   text sitting on top of it (confirmed in testing: "not really close,"
+   the trees were reading as noise right behind the paragraph). This is
+   why the art needed its OWN layer separate from ::after's solid fill:
+   masking is applied per-element, and masking ::after directly would
+   have faded the card's base color out too, not just the image on top
+   of it. The icon/title area near the top keeps the art fully visible;
+   only the lower band where the paragraph actually sits fades to
+   nothing.
+
+   --mtn-size/--mtn-pos are set on .capability-panel itself (not this
+   pseudo-element directly — you can't target a pseudo-element from JS)
+   by setupCapabilityMountains() in js/main.js, and inherited here since
+   custom properties cascade from an element to its own pseudo-elements.
+   That JS measures each panel's real offset and the row's total width on
+   every layout change (via ResizeObserver, which fires continuously
+   during the hover/focus flex-grow transition below, not just at the
+   start/end) and sets background-size to the FULL ROW's width — so every
+   panel is really showing its own clipped slice of one single image
+   sized to the whole row, which is what makes the four slices line up
+   into one continuous range rather than four independent, repeating
+   crops. As a panel's width changes on hover, its slice's position
+   shifts under the (fixed-relative-to-the-row) image, which is the
+   panning/"shifting" effect that was asked for. Falls back to a plain
+   0/0 100% 100% (no visible slice offset) if JS fails or hasn't run yet
+   — same fail-safe pattern as .reveal in global.css. */
+.capability-panel::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  /* 0.95 per direct request. The 5% that shows through lands on
+     ::after's own Deep Navy fill underneath (below), which is the same
+     family as the artwork's own background, so it reads as a very
+     slight settling of the image into the card rather than a washed-out
+     overlay of some unrelated color. */
+  opacity: 0.95;
+  /* A real supplied illustration now, replacing seven rounds of
+     procedurally-generated SVG mountain art (assets/patterns/
+     capability-mountains.svg, left in the repo but no longer
+     referenced anywhere) — none of the generated versions landed, so
+     this is the finished piece Travis produced instead.
+
+     WebP, converted from the supplied 2.2MB PNG (kept alongside it at
+     what_i_do_cards.png as the source) — 151KB at quality 88, a ~93%
+     saving on a decorative background that would otherwise be by far
+     the heaviest asset on the page.
+
+     No mask-image fade anymore: the fade existed because the generated
+     art was light-on-light and competed with dark card text. This
+     illustration is dark navy, and the panel's text is now light
+     (below), so the contrast works in the opposite direction and the
+     image can just be fully visible the whole way down. */
+  /* ?v=3 — a faint orange sun composited into the artwork, filling what
+     read as dead sky behind "Improve the Presence" (the rightmost panel
+     shows the last quarter of the image, and its upper area had no
+     detail at all). Sits in the top-right corner with only a quarter of
+     it visible.
+
+     Its position is derived from this rule's own background-position,
+     NOT eyeballed: the image renders about 2.7x taller than the panel,
+     so at 15% only the band from roughly 9.5% to 46% of the image height
+     is ever on screen. The sun's centre is placed exactly on the corner
+     of that visible band (x = 1.00w, y = 0.095h), which is what quarters
+     it. Placing it at the image's literal top corner would put it above
+     the crop, where it would never be seen at all.
+
+     >> That coupling is worth knowing: change background-position-y
+     >> below and the sun moves within the panel, or off it. Re-run the
+     >> composite against the new value rather than nudging the CSS.
+
+     Composited into the derived WebP only; what_i_do_cards.png beside it
+     is still the untouched original, so this stays repeatable rather
+     than destructive.
+
+     The dev server sends no Cache-Control header, so without this query
+     bump the browser keeps serving whatever it already cached. */
+  background-image: url("../assets/images/what-i-do/what-i-do-cards.webp?v=3");
+  background-repeat: no-repeat;
+  /* --mtn-size is "<row width>px auto" (js/main.js), NOT "...px 100%" as
+     it was for the SVG: that SVG carried preserveAspectRatio="none" and
+     was built to be stretched to any shape, but a raster photo squashed
+     from its native 4:3 into the row's ~3.6:1 letterbox would visibly
+     distort. `auto` height keeps the real aspect ratio and lets the
+     image run taller than the panel, with the vertical position below
+     choosing which band of it shows.
+     15% (rather than center) biases that band upward so the summit sits
+     fully in frame with a little sky above it, instead of centering on
+     the lower slopes. */
+  background-size: var(--mtn-size, cover);
+  background-position: var(--mtn-pos, center 15%);
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.83px) 2px,
+    calc(100% - var(--card-chamfer) - 0.83px) 2px,
+    calc(100% - 2px) calc(var(--card-chamfer) + 0.83px),
+    calc(100% - 2px) calc(100% - var(--card-chamfer) - 0.83px),
+    calc(100% - var(--card-chamfer) - 0.83px) calc(100% - 2px),
+    calc(var(--card-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--card-chamfer) - 0.83px),
+    2px calc(var(--card-chamfer) + 0.83px)
+  );
+}
+
+/* The Trail Orange capability icons that used to sit at the top of each
+   panel (.capability-panel__icon, rendered from the `icon` SVG strings
+   still in js/data.js) were removed per direct request. They existed to
+   fill what was then a bare white panel; the supplied mountain artwork
+   now fills that space on its own, and the icons were reading as extra
+   clutter on top of it. The data is left in place as a cheap revert
+   path — nothing renders it. */
+
+/* Groups the title + description as one unit so justify-content (below)
+   can position the whole group as a block, rather than spacing every
+   individual child apart evenly (which would blow the tight gap between
+   the title and its own description). */
+.capability-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* Light text now that the panel's face is the dark navy illustration
+   rather than a Warm Off-White card — --color-text/-muted are both dark
+   tones meant for light backgrounds and would be unreadable here. Soft
+   Sand for the description (not plain off-white) keeps the supporting
+   copy a step quieter than the title, the same relationship
+   .hero__supporting has against the hero's own headline on an equally
+   dark background. */
+.capability-panel h3 {
+  margin-bottom: 0;
+  color: var(--color-warm-off-white);
+  /* Reserves two lines' worth of height even for a title that only
+     wraps to one ("Plan the Path", versus the two-line "Design the
+     Experience" / "Build the System" / "Improve the Presence"). The
+     body group is bottom-anchored, so without this a one-line title
+     started a whole line lower than its neighbours' first lines —
+     per direct request, every card's title should begin on the same
+     top line. Text sits at the top of this reserved box by default,
+     which is what actually does the aligning. 2.3em = two lines at
+     the global --lh-tight (1.15) these headings use. */
+  min-height: 2.3em;
+}
+
+.capability-panel p {
+  color: var(--color-soft-sand);
+  font-size: var(--fs-small);
+  margin-bottom: 0;
+}
+
+@media (min-width: 1080px) {
+  /* Equal by default (flex-grow: 1 each, sharing the row evenly) —
+     hovering/focusing one bumps its own grow factor up, and flexbox
+     redistributes the remaining space across the other three
+     automatically; nothing needs to be set on the siblings for them to
+     shrink. min-width: 0 overrides flex's own default min-width: auto,
+     which would otherwise refuse to let a panel shrink below its
+     content's natural width (the long description text) once a
+     neighbor expands — without it, the row would just overflow instead
+     of the collapsed panels actually narrowing.
+     overflow: hidden clips the description while it's still animating
+     open/closed (see p's opacity/max-height transition below) so it
+     doesn't spill out past this panel's own edge into its neighbor
+     mid-transition. justify-content is back to flex-end (it was
+     space-between while an icon sat at the top of each panel, pinning
+     the two apart) — with the icons removed there's only the body group
+     left, and space-between on a lone child resolves to flex-START,
+     which would have jumped all the text to the top of the card. */
+  .capability-panel {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    justify-content: flex-end;
+    transition: flex-grow 0.45s ease, filter 0.3s ease;
+  }
+
+  .capability-panel:hover,
+  .capability-panel:focus-within {
+    flex-grow: 2.6;
+    /* The Trail Orange bloom that used to sit here is removed. It was
+       added while the panel's shadow was still being clipped away (the
+       clip-path-after-filter bug fixed on this component), so at the
+       time it was the only thing visibly marking the active panel. Now
+       that the shadow renders, the glow is redundant — and once it was
+       actually visible it read as a halo behind the card rather than as
+       elevation. The panel keeps its base drop-shadow; the width change
+       and the description fading in already make the active one
+       unmistakable. */
+    filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.45));
+  }
+
+  /* Collapsed by default (opacity + max-height, not display: none — the
+     text stays in the accessibility tree throughout, just visually
+     collapsed, rather than actually removed and re-added). Revealed on
+     hover/focus alongside the same flex-grow expansion above, so the
+     panel widening and its description fading in read as one motion
+     instead of two separately-timed ones. */
+  .capability-panel p {
+    opacity: 0;
+    max-height: 0;
+    transition: opacity 0.35s ease, max-height 0.45s ease;
+  }
+
+  .capability-panel:hover p,
+  .capability-panel:focus-within p {
+    opacity: 1;
+    max-height: 10rem;
+  }
+}
+
+/* ---- Process step ----------------------------------------------------------- */
+
+/* One Deep Navy card per step. Keeps the editorial three-column shape
+   the ruled list established (number, title, description) — that layout
+   was working; only the surface under it changed. The rules and the
+   plain background are gone: with the topo map now behind this section,
+   hairline rules read as more contour lines and the copy sat straight on
+   the terrain.
+
+   Shape is on ::before rather than this element, so the card's shadow
+   isn't clipped away by its own chamfer — clip-path is applied after
+   filter. Same structure as .project-card. */
+.process-step {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem var(--space-md);
+  align-items: baseline;
+  padding: var(--space-md) var(--space-card);
+  color: var(--color-warm-off-white);
+  --card-chamfer: 0.5rem;
+  filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* The 2px ring, in the card's full outer shape. Same inset-patch build as
+   .capability-panel, .project-card and .skill-group: this layer is the
+   ring, ::after sits 2px inside it carrying the fill. A real border can't
+   be used, since a stroke is traced against the original rectangle and
+   then cut at an angle it was never drawn to fit.
+
+   Ring colour is Soft Sand rather than the Deep Navy those other cards
+   use. Those are light-filled cards where navy is the contrasting
+   outline; these are navy cards, and a navy ring on a navy fill would be
+   invisible. Soft Sand is the same relationship inverted, and it's
+   already the site's border token. */
+.process-step::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background: var(--color-border);
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+}
+
+/* The card fill, inset 2px so the ring stays visible. 80% Deep Navy, so
+   the map reads faintly through the card the same way it does through
+   the Selected Peaks cards on the same terrain. Same chamfer + 0.83px
+   perpendicular correction on the diagonals used everywhere else. */
+.process-step::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.83px) 2px,
+    calc(100% - var(--card-chamfer) - 0.83px) 2px,
+    calc(100% - 2px) calc(var(--card-chamfer) + 0.83px),
+    calc(100% - 2px) calc(100% - var(--card-chamfer) - 0.83px),
+    calc(100% - var(--card-chamfer) - 0.83px) calc(100% - 2px),
+    calc(var(--card-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--card-chamfer) - 0.83px),
+    2px calc(var(--card-chamfer) + 0.83px)
+  );
+}
+
+/* Zipper reveal: odd cards slide in from the left, even from the right,
+   as each one scrolls into view. Overrides the site-wide .reveal
+   treatment (global.css), which slides everything up from below.
+
+   The cards also carry .reveal--repeat (set in renderProcessSteps), which
+   makes setupScrollReveal() re-arm them on the way out instead of
+   unobserving after the first pass — so the zipper plays again every
+   time you scroll back through, rather than only once on the way down.
+
+   Selectors carry the .process-timeline ancestor purely for specificity:
+   global.css's `.reveal.reveal--pending.is-visible` is three classes, so
+   a two-class override here would lose the transform back to translateY.
+
+   Scoped to .process-step, so #process's own .section-heading — the
+   banner card — keeps the standard vertical fade rather than sliding in
+   sideways with the steps. */
+.process-timeline .process-step.reveal--pending {
+  --zip-distance: 64px;
+  transform: translateX(calc(var(--zip-distance) * -1));
+  /* Slower than --transition-slow: a horizontal slide covers more
+     visible distance than the default upward nudge, and at 420ms it read
+     as a snap rather than a glide. Lengthened again per direct request
+     for more delay on the way in. */
+  transition-duration: 700ms;
+}
+
+/* Cascade down the six cards, so a run of them entering together arrives
+   in sequence rather than as one block.
+
+   Kept short on purpose (75ms steps, so the last card waits 375ms). The
+   delay applies whenever a card enters, including when it enters alone —
+   so a large stagger doesn't read as rhythm, it reads as the card
+   failing to keep up with the scroll. This is the ceiling before that
+   starts happening. */
+.process-timeline .process-step:nth-child(1).reveal--pending { transition-delay: 0ms; }
+.process-timeline .process-step:nth-child(2).reveal--pending { transition-delay: 75ms; }
+.process-timeline .process-step:nth-child(3).reveal--pending { transition-delay: 150ms; }
+.process-timeline .process-step:nth-child(4).reveal--pending { transition-delay: 225ms; }
+.process-timeline .process-step:nth-child(5).reveal--pending { transition-delay: 300ms; }
+.process-timeline .process-step:nth-child(6).reveal--pending { transition-delay: 375ms; }
+
+.process-timeline .process-step:nth-child(even).reveal--pending {
+  transform: translateX(var(--zip-distance));
+}
+
+.process-timeline .process-step.reveal--pending.is-visible {
+  transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Belt and braces. setupScrollReveal() already bails out before adding
+     reveal--pending under this preference, so these rules normally never
+     apply at all — but if that ever changes, this stops the cards being
+     left permanently offset to one side. */
+  .process-timeline .process-step.reveal--pending,
+  .process-timeline .process-step:nth-child(even).reveal--pending {
+    transform: none;
+  }
+}
+
+/* Quiet on purpose — the number orients you without competing with the
+   title beside it, which is the whole point of an editorial list versus
+   the filled circular .route-marker badge this replaced. Tabular figures
+   keep every number the same width so the titles all start on the same
+   vertical line rather than drifting by a pixel or two between "01" and
+   "06". */
+.process-step__number {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  letter-spacing: 0.14em;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--lh-tight);
 }
 
 .process-step__title {
@@ -996,44 +1929,618 @@
   margin-bottom: 0;
 }
 
-.process-step p {
-  color: var(--color-text-muted);
-  font-size: var(--fs-small);
+.process-step__desc {
+  /* Soft Sand, not --color-text-muted: that's a dark tone meant for
+     light backgrounds and is unreadable on the navy card. Keeps the
+     description a step quieter than the title, same relationship
+     .hero__supporting has on the equally dark hero. */
+  color: var(--color-soft-sand);
   margin-bottom: 0;
+  /* Caps the measure so the description doesn't run the full width of a
+     wide screen — long unbroken lines are the main readability risk in a
+     full-width row layout, and this is the trade for the extra room the
+     rows bought over the old cramped columns. */
+  max-width: 46rem;
+  /* Spans both columns on mobile, sitting under the number rather than
+     indented past it. Overridden at the wide breakpoint below, where it
+     gets its own column instead. */
+  grid-column: 1 / -1;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 860px) {
+  /* Three real columns: number, title, description. This is the
+     contents-page shape — a scanner reads straight down the titles in
+     the middle column, and only crosses into the description for the
+     steps they actually care about.
+     minmax on the title column keeps every title in a predictable band
+     rather than letting "Watch & Improve" set a wider column than
+     "Plan" for every other row. */
   .process-step {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 3rem minmax(9rem, 14rem) 1fr;
+    gap: var(--space-lg);
+    padding-block: var(--space-lg);
   }
+
+  .process-step__desc {
+    grid-column: auto;
+  }
+}
+
+/* ---- Contact form ----------------------------------------------------------------- */
+
+/* Single column throughout, at every width — the research was clear that
+   it outperforms multi-column, and a two-up row would collapse to one on
+   mobile anyway, so the second layout would only ever serve desktop. */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  max-width: 34rem;
+}
+
+.contact-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Labels above fields, always visible. Not placeholders-as-labels: those
+   vanish the moment someone starts typing, which is exactly when people
+   check what a field wanted, and they're read inconsistently by screen
+   readers. */
+.contact-form__field label {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-warm-off-white);
+}
+
+.contact-form__field input,
+.contact-form__field select,
+.contact-form__field textarea {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-warm-off-white);
+  /* Deep Navy at 55%, so the topo map still reads faintly behind the
+     inputs the way it does through the cards elsewhere on the page. */
+  background: color-mix(in srgb, var(--color-deep-navy) 55%, transparent);
+  border: 1px solid rgba(216, 203, 181, 0.45);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.85rem;
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+/* A plain border survives here, unlike the chamfered cards: these inputs
+   have no clip-path, so there's no diagonal edge for a stroke to be cut
+   against. Rounded rather than chamfered on purpose — form fields are a
+   different kind of object from the content cards, and the shape says so. */
+.contact-form__field textarea {
+  resize: vertical;
+  min-height: 7rem;
+}
+
+.contact-form__field select {
+  /* Native select arrows render nearly invisibly on a dark field in some
+     browsers; this keeps the control legible without replacing it with a
+     custom widget that would lose the platform's own keyboard handling. */
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-soft-sand) 50%),
+    linear-gradient(135deg, var(--color-soft-sand) 50%, transparent 50%);
+  background-position: calc(100% - 1.1rem) 55%, calc(100% - 0.75rem) 55%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 2.25rem;
+}
+
+.contact-form__field input:focus,
+.contact-form__field select:focus,
+.contact-form__field textarea:focus {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-deep-navy) 75%, transparent);
+}
+
+/* :user-invalid, not :invalid — :invalid matches a required field that's
+   simply empty, so every field would be outlined red before the person
+   has typed anything. :user-invalid only applies after they've interacted
+   with it or tried to submit. */
+.contact-form__field input:user-invalid,
+.contact-form__field textarea:user-invalid {
+  border-color: #e5734f;
+}
+
+.contact-form__submit {
+  align-self: flex-start;
+  margin-top: var(--space-xs);
+}
+
+.contact-form__status {
+  margin: 0;
+  font-size: var(--fs-small);
+  min-height: 1.25rem;
+}
+
+.contact-form__status.is-success {
+  color: var(--color-warm-off-white);
+}
+
+.contact-form__status.is-error {
+  color: #f0a68c;
+}
+
+/* Honeypot. Moved off-screen rather than display: none or
+   visibility: hidden — bots skip fields hidden those ways, which defeats
+   the point of the trap. */
+.contact-form__gotcha {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-form__field input,
+  .contact-form__field select,
+  .contact-form__field textarea {
+    transition: none;
+  }
+}
+
+/* ---- About photo ---------------------------------------------------------------- */
+
+/* Framed with the same 0.5rem chamfer and 2px Deep Navy inset ring as
+   .capability-panel and the project cards, so the one photograph of a
+   person on the page still belongs to the same shape language as
+   everything around it.
+
+   aspect-ratio + object-fit: cover means any reasonably-proportioned file
+   renders as a clean 4:5 portrait without being stretched — the crop
+   happens rather than a distortion. A pre-cropped 4:5 file is still
+   better (see the note in index.html), since the browser crops from the
+   centre and can't know where the face is. */
+/* No clip-path or background on the figure itself — both are on ::before
+   below. clip-path is applied AFTER filter, so with the chamfer here the
+   drop-shadow was generated and then clipped straight off by it. Keeping
+   this element unclipped lets the shadow render; it still follows the
+   chamfered silhouette, because drop-shadow reads an element's rendered
+   alpha including its descendants. */
+.about__photo {
+  margin: 0;
+  position: relative;
+  z-index: 0;
+  --card-chamfer: 0.5rem;
+  /* Same lift the capability panels use. drop-shadow, not box-shadow —
+     box-shadow traces the original rectangle and would show square
+     corners outside the chamfered silhouette. */
+  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.25));
+}
+
+/* The Deep Navy ring, in the photo's full outer shape. The image itself
+   is clipped 2px inside this (see .about__photo img), so the margin left
+   uncovered around the edge is the ring. */
+.about__photo::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  /* Soft Sand, matching every other card on the topo map. Was Deep Navy,
+     which against this dark photo barely registered as a frame. */
+  background: var(--color-border);
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+}
+
+.about__photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  /* The 2px inset that leaves the navy ring visible, done with clip-path
+     on the image itself rather than a separate patch element — there's
+     real content here, not a flat fill, so the usual ::after patch
+     approach (which paints OVER the interior) would cover the photo.
+     Same 0.83px perpendicular correction on the diagonals as everywhere
+     else this ring is drawn. */
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.83px) 2px,
+    calc(100% - var(--card-chamfer) - 0.83px) 2px,
+    calc(100% - 2px) calc(var(--card-chamfer) + 0.83px),
+    calc(100% - 2px) calc(100% - var(--card-chamfer) - 0.83px),
+    calc(100% - var(--card-chamfer) - 0.83px) calc(100% - 2px),
+    calc(var(--card-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--card-chamfer) - 0.83px),
+    2px calc(var(--card-chamfer) + 0.83px)
+  );
+}
+
+/* Sets the opening paragraph a step up from the body copy, so the
+   differentiator that now leads this section reads as the lead rather
+   than as the first of three equal paragraphs.
+
+   Trimmed from the full --fs-h3 (up to 1.65rem): at that size this ran
+   five lines deep and dominated everything under it, which is the
+   opposite of the clean editorial balance this section is going for.
+   1.2rem is enough separation from the body copy to signal "this is the
+   important one" without the paragraph becoming a headline in its own
+   right. */
+.about__lead {
+  font-size: 1.2rem;
+  line-height: var(--lh-loose);
+  /* Light on the navy card. The rest of the body copy inherits
+     .about__body's own off-white; only this rule set a colour
+     explicitly, and it was the dark one. */
+  color: var(--color-warm-off-white);
+}
+
+/* Scannable credential block under the photo — the pattern the research
+   kept citing (title, focus, education, presented as facts rather than
+   buried in prose). Deliberately quiet: this supports the story, it
+   doesn't compete with it. */
+/* Its own Deep Navy card, matching .about__body and the Process cards.
+   The border-top rule it used before is gone: on the topo map a hairline
+   rule reads as another contour line, the same problem that took the
+   rules out of the Process list. */
+.about__facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 0;
+  position: relative;
+  z-index: 0;
+  padding: var(--space-card);
+  --card-chamfer: 0.5rem;
+  filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.3));
+}
+
+.about__facts::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background: var(--color-border);
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+}
+
+.about__facts::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.83px) 2px,
+    calc(100% - var(--card-chamfer) - 0.83px) 2px,
+    calc(100% - 2px) calc(var(--card-chamfer) + 0.83px),
+    calc(100% - 2px) calc(100% - var(--card-chamfer) - 0.83px),
+    calc(100% - var(--card-chamfer) - 0.83px) calc(100% - 2px),
+    calc(var(--card-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--card-chamfer) - 0.83px),
+    2px calc(var(--card-chamfer) + 0.83px)
+  );
+}
+
+.about__facts dt {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-accent);
+  margin-bottom: 0.2rem;
+}
+
+.about__facts dd {
+  margin: 0;
+  font-size: var(--fs-small);
+  line-height: var(--lh-normal);
+  /* Light now that the facts sit on a navy card — --color-text is Deep
+     Navy and would be invisible against it. */
+  color: var(--color-warm-off-white);
 }
 
 /* ---- Skill group -------------------------------------------------------------- */
 
 .skill-group {
-  background: var(--color-bg-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-card);
+  /* One full-width ruled row per group — no card, no chamfer, no
+     drop-shadow. Replaced five boxed panels, which had three problems
+     visible in testing: the page went straight from Process (which had
+     just dropped its own boxes for this same ruled-list treatment) into
+     another set of panels, breaking the rhythm; section -> card -> chip
+     was three levels of containment for what is really a labelled list;
+     and the five cards were flat empty rectangles on a page where every
+     other card carries artwork or colour, so they read as unfinished
+     rather than restrained.
+
+     Mobile-first: the group label sits above its chips, moving into its
+     own left-hand column at the wide breakpoint below. Same structure as
+     .process-step, deliberately. */
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+  padding-block: var(--space-md);
+  border-top: 1px solid rgba(248, 246, 240, 0.22);
+  color: var(--color-warm-off-white);
 }
 
+/* A quiet category marker, not a heading competing with the chips beside
+   it — the same role .process-step__number plays in that list. Uppercase
+   display type at label scale, rather than the 1.05rem card title this
+   was: without a card around it, that size read as a second-level
+   heading and fought the section H2 above. */
 .skill-group__title {
-  font-size: var(--fs-h3);
-  margin-bottom: var(--space-sm);
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  /* Warm Off-White rather than Soft Sand: Soft Sand only reaches 4.16:1
+     against this section's Slate Blue Grey, short of the 4.5:1 needed at
+     this text size. It stays the ring colour on the chips below, where
+     it's decoration rather than text and the threshold doesn't apply. */
+  color: var(--color-warm-off-white);
+  line-height: var(--lh-tight);
+  margin-bottom: 0;
 }
 
 .skill-group__list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-.skill-group__list li {
-  font-size: var(--fs-small);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-pill);
-  padding: 0.3rem 0.85rem;
-  color: var(--color-text);
+@media (min-width: 860px) {
+  /* Label column wide enough for "Content / Marketing" without wrapping,
+     so every group's chips begin on the same left edge and the rows read
+     as one aligned list rather than a ragged stack. */
+  .skill-group {
+    grid-template-columns: 13rem 1fr;
+    gap: var(--space-lg);
+    align-items: baseline;
+  }
+}
+
+/* Chamfered rather than the pill radius these used before, matching the
+   cut-corner shape shared by the project cards, capability panels,
+   waypoint CTAs, and the skill group cards these sit inside.
+
+   The chamfer is 0.25rem, not the 0.5rem used on the larger cards — the
+   same value as .project-card__proof-chips, which are the closest thing
+   on the page in size. A cut sized for a card reads as a lopped-off
+   corner at chip scale, where the cut would eat most of a 28px-tall
+   element's edge.
+
+   Ring is drawn with the inset-patch technique rather than a real border
+   (clip-path severs a border stroke at every chamfer — see the correction
+   note on .skills-legend__item). This element's own background paints the
+   ring; ::after covers all but a 1px margin. */
+.skill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  /* Trimmed from --fs-small / 0.3rem 0.85rem. There are 32 of these, so
+     small per-chip savings compound quickly down the section's height,
+     and at five columns the roomier padding was pushing chips onto their
+     own line that would otherwise pair up. */
+  font-size: 0.8rem;
+  padding: 0.25rem 0.65rem;
+  /* Outlined, not the solid Warm Off-White fill these had. Solid, 32 of
+     them, they were the heaviest thing on the page — out-weighing the
+     group labels, the section heading, and everything around them, and
+     nothing else on the site uses a solid light fill at that density
+     (the secondary CTA is hollow, the nav links are bare text, the
+     waypoint ring is a stroke). Outlined, the section reads as a
+     restrained list and the type carries it.
+
+     The ring is Soft Sand at low alpha, with the interior transparent so
+     the Slate Blue Grey section shows through. That transparency is only
+     workable now the cards are gone: an inset patch has to be opaque to
+     cover the ring beneath it, so while these sat on navy cards the fill
+     had to be a real colour. */
+  color: var(--color-warm-off-white);
+  position: relative;
+  z-index: 0;
+  border: none;
+  border-radius: 0;
+  background: rgba(216, 203, 181, 0.45);
+  --pill-chamfer: 0.25rem;
+  clip-path: polygon(
+    var(--pill-chamfer) 0%,
+    calc(100% - var(--pill-chamfer)) 0%,
+    100% var(--pill-chamfer),
+    100% calc(100% - var(--pill-chamfer)),
+    calc(100% - var(--pill-chamfer)) 100%,
+    var(--pill-chamfer) 100%,
+    0% calc(100% - var(--pill-chamfer)),
+    0% var(--pill-chamfer)
+  );
+  transition: opacity var(--transition-base), background var(--transition-base);
+}
+
+/* 1px inset, so the diagonals shift by 1px * (√2 − 1) ≈ 0.41px — the
+   perpendicular offset for a 45° edge, same derivation as everywhere
+   else this technique is used, just scaled to a 1px ring. */
+.skill-chip::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  /* Matches the section background exactly rather than being transparent
+     — a transparent patch paints nothing, so the chip would render as a
+     solid Soft Sand block instead of an outline. This has to be kept in
+     step with #tools-and-skills' own background (css/layout.css). */
+  background: var(--color-slate-blue-grey);
+  clip-path: polygon(
+    calc(var(--pill-chamfer) + 0.41px) 1px,
+    calc(100% - var(--pill-chamfer) - 0.41px) 1px,
+    calc(100% - 1px) calc(var(--pill-chamfer) + 0.41px),
+    calc(100% - 1px) calc(100% - var(--pill-chamfer) - 0.41px),
+    calc(100% - var(--pill-chamfer) - 0.41px) calc(100% - 1px),
+    calc(var(--pill-chamfer) + 0.41px) calc(100% - 1px),
+    1px calc(100% - var(--pill-chamfer) - 0.41px),
+    1px calc(var(--pill-chamfer) + 0.41px)
+  );
+  transition: background var(--transition-base);
+}
+
+/* Only applied while a project is selected (class set by
+   setupSkillsCrossHighlight(), js/main.js) — with nothing selected every
+   chip sits at full strength rather than everything being dimmed
+   equally. Non-matching chips fade rather than disappearing: the point
+   is to show the selected project against the full picture, and
+   removing them would collapse the layout and lose that context. */
+.skills-grid.is-filtering .skill-chip {
+  opacity: 0.28;
+}
+
+/* Matched chips fill solid Trail Orange rather than just taking an orange
+   ring. Against the Slate Blue Grey section an orange 1px outline only
+   reaches 3.29:1 — too faint to carry the whole filter interaction, which
+   is this section's main feature. Filling the chip and flipping the text
+   to navy makes the match unmissable and reads far better next to the
+   28% dimmed chips around it. */
+.skills-grid.is-filtering .skill-chip.is-match {
+  opacity: 1;
+  background: var(--color-accent);
+  color: var(--color-deep-navy);
+}
+
+.skills-grid.is-filtering .skill-chip.is-match::after {
+  background: var(--color-accent);
+}
+
+/* ---- Skills: project filter legend ----------------------------------------- */
+
+/* Sits on #tools-and-skills' Slate Blue Grey background, so it's styled
+   light-on-dark rather than reusing the light .skill-chip treatment
+   above. Chamfered to match the card language used across the page
+   rather than the pill radius the skill chips use — these are controls,
+   and the shape difference is part of what signals that. */
+/* CORRECTION: an earlier version of this rule used a real 1px border and
+   claimed it was safe here — that a transparent background meant there
+   was no fill for a clipped border to mismatch against. That was wrong,
+   and it showed: the border was visibly severed at all four chamfers,
+   leaving detached edge strokes with cut corners. clip-path clips the
+   border stroke itself regardless of what's behind it; transparency has
+   nothing to do with it.
+
+   Now the same inset-patch technique used everywhere else on the page
+   (.btn--waypoint, .capability-panel, .skill-group). This element's own
+   background paints the ring; ::after covers everything except a 1px
+   margin around the edge.
+
+   Solid Deep Navy now, rather than the see-through look (a patch filled
+   with the section's own Slate Blue Grey) these had. That version sat too
+   close in tone to the section behind it to register as a control; navy
+   gives the row real contrast against the Slate Blue Grey, and matches
+   the navy skill chips below. A useful side effect of moving off the
+   see-through fill: this no longer has to be kept in step with
+   #tools-and-skills' background colour (css/layout.css). */
+.skills-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  /* Up from --fs-small / 0.38rem 0.75rem. These are the section's only
+     interactive controls — everything else in Tools & Skills is a static
+     chip — so they were undersized for the job at the same scale as the
+     skill labels they drive. The bigger tap target helps on touch too,
+     where they're the only way to use the filter at all. */
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--color-warm-off-white);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  position: relative;
+  z-index: 0;
+  border: none;
+  background: var(--color-deep-navy);
+  --card-chamfer: 0.4rem;
+  border-radius: 0;
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+  transition: color var(--transition-base), background var(--transition-base);
+}
+
+/* 1px inset, so the diagonals shift by 1px * (√2 − 1) ≈ 0.41px rather
+   than the 0.83px the 2px insets elsewhere use — a 45° edge has to be
+   offset perpendicular to itself, not along an axis, or the ring changes
+   width at the corners. */
+.skills-legend__item::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--color-deep-navy);
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.41px) 1px,
+    calc(100% - var(--card-chamfer) - 0.41px) 1px,
+    calc(100% - 1px) calc(var(--card-chamfer) + 0.41px),
+    calc(100% - 1px) calc(100% - var(--card-chamfer) - 0.41px),
+    calc(100% - var(--card-chamfer) - 0.41px) calc(100% - 1px),
+    calc(var(--card-chamfer) + 0.41px) calc(100% - 1px),
+    1px calc(100% - var(--card-chamfer) - 0.41px),
+    1px calc(var(--card-chamfer) + 0.41px)
+  );
+  transition: background var(--transition-base);
+}
+
+.skills-legend__num {
+  color: var(--color-accent);
+  /* Scaled with the label beside it, staying a step smaller so it still
+     reads as an index rather than part of the project name. */
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hover/active swaps the ring to Trail Orange by recolouring this
+   element's own background (there's no border-color to animate anymore),
+   and darkens the interior patch below. */
+.skills-legend__item:hover,
+.skills-legend__item.is-active {
+  background: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Interior stays Deep Navy on hover/active — only the ring changes, so
+   the button doesn't shift weight as you move across the row. Must stay
+   fully opaque regardless: the patch's whole job is covering the ring
+   colour beneath it, and any transparency would let that orange bleed
+   across the button face. */
+
+.skills-legend__item.is-active .skills-legend__num,
+.skills-legend__item:hover .skills-legend__num {
+  color: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-chip,
+  .skills-legend__item {
+    transition: none;
+  }
 }

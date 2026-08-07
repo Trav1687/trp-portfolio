@@ -12,12 +12,22 @@ document.addEventListener("DOMContentLoaded", () => {
   safeRun(renderCapabilities);
   safeRun(renderProcessSteps);
   safeRun(renderSkillGroups);
+  safeRun(renderSkillsLegend);
+  // Must run after both of the above (wires the elements they create).
+  safeRun(setupSkillsCrossHighlight);
   safeRun(setupMobileNav);
   safeRun(setupActiveSectionNav);
   safeRun(setupScrollReveal);
   safeRun(setupHeroRouteDraw);
   safeRun(setupWaypointRings);
   safeRun(setupNavProgress);
+  // Must run after renderCapabilities (needs the panels it creates to
+  // already be in the DOM to measure them).
+  safeRun(setupCapabilityMountains);
+  // Must run after renderProjects (measures the cards it creates).
+  safeRun(setupProjectScrollFocus);
+  safeRun(setupProofChipRows);
+  safeRun(setupContactForm);
 });
 
 function safeRun(fn) {
@@ -59,6 +69,31 @@ function renderProjects() {
     .slice(1)
     .map((project, i) => renderProjectCard(project, i + 1))
     .join("");
+}
+
+/*
+  Orders proof-point chips longest-first, so the wrapped rows taper from
+  widest at the top down to narrowest at the bottom. Paired with
+  justify-content: center on the list (components.css), that's what gives
+  the block its centred, tapering shape rather than a ragged right edge.
+
+  Flexbox packs greedily in DOM order and can't reorder by size on its
+  own — CSS has no way to measure how wide a chip will be. Sorting the
+  source order is what actually controls which chips land on which line.
+
+  Character count as the proxy for width: the chips all share one font,
+  size and padding, so length tracks rendered width closely enough. The
+  alternative — measuring real widths in the DOM after render and
+  assigning flex `order` — is more precise but adds a layout-read pass
+  and a runtime dependency for something purely cosmetic.
+
+  Sorts a copy. Sorting in place would mutate the projects array in
+  js/data.js, so any later render would start from an already-sorted
+  list — harmless here, but the kind of shared-state bug that's hard to
+  spot once something else reads that data.
+*/
+function sortChipsWidestFirst(points) {
+  return [...points].sort((a, b) => b.length - a.length);
 }
 
 /*
@@ -126,7 +161,9 @@ function renderProjectCard(project, index) {
           <p class="project-card__meta">${project.tags.join(" · ")}</p>
           <p>${project.description}</p>
           <ul class="project-card__proof-chips">
-            ${project.proofPoints.map((point) => `<li>${point}</li>`).join("")}
+            ${sortChipsWidestFirst(project.proofPoints)
+              .map((point) => `<li>${point}</li>`)
+              .join("")}
           </ul>
           <!-- Real case study/project-notes pages don't exist yet (see
                TODO.md) — this is a genuine placeholder, disabled rather
@@ -155,22 +192,308 @@ function renderProjectCard(project, index) {
       </article>`;
 }
 
-/* ---- Render: What I Do capability cards ------------------------------------ */
+/* ---- Selected Peaks: taper the proof-chip rows ----------------------------- */
+
+/*
+  Makes each card's proof-point chips wrap into rows that get narrower
+  going down, instead of a ragged block.
+
+  sortChipsWidestFirst() gets most of the way there at render time, but it
+  can't get all the way: it orders by character count, and a row of three
+  medium chips packs tighter than a row of two long ones, so the LAST row
+  sometimes ends up the widest. That's exactly what happened on
+  Mountainside Millwork and ValorBot — the character-count estimate
+  predicted ValorBot would taper and it didn't.
+
+  So this measures what actually rendered. It re-packs using real widths,
+  and if the rows aren't already descending it reorders whole rows
+  widest-first and lets them re-wrap.
+
+  Reordering ROWS rather than individual chips is the important part: the
+  chips in a row are known to fit on one line together, so moving the
+  group keeps that true. Reordering chips individually would just produce
+  a different arbitrary packing.
+
+  No forced line breaks (spacer elements with flex-basis: 100%) — the
+  reflowed order is verified to descend before it's committed, and if it
+  doesn't the DOM is left exactly as it was. Better a ragged block than
+  hard-coded breaks that overflow at some other width.
+*/
+function setupProofChipRows() {
+  const lists = Array.from(document.querySelectorAll(".project-card__proof-chips"));
+  if (!lists.length) return;
+
+  let ticking = false;
+  function apply() {
+    ticking = false;
+    lists.forEach(taperChipRows);
+  }
+
+  apply();
+  // Chip widths don't change on resize, but the container's does, so the
+  // packing does too — a layout that tapers at one width may not at
+  // another.
+  window.addEventListener("resize", () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(apply);
+  });
+}
+
+function taperChipRows(list) {
+  const chips = Array.from(list.children);
+  // Two chips can only ever be one or two rows, and a single row is
+  // trivially "descending" — nothing to arrange.
+  if (chips.length < 3) return;
+
+  const styles = window.getComputedStyle(list);
+  const gap = parseFloat(styles.columnGap || styles.gap) || 0;
+  const containerWidth = list.clientWidth;
+  if (!containerWidth) return;
+
+  const widths = new Map(chips.map((chip) => [chip, chip.getBoundingClientRect().width]));
+
+  // Mirrors how flexbox itself wraps: fill the current line until the next
+  // item doesn't fit, then start a new one.
+  function pack(order) {
+    const rows = [];
+    let current = [];
+    let width = 0;
+
+    order.forEach((chip) => {
+      const chipWidth = widths.get(chip);
+      // 0.5px tolerance: sub-pixel layout means an exact comparison can
+      // disagree with what the browser actually did.
+      if (current.length && width + gap + chipWidth > containerWidth + 0.5) {
+        rows.push({ items: current, width });
+        current = [];
+        width = 0;
+      }
+      width += (current.length ? gap : 0) + chipWidth;
+      current.push(chip);
+    });
+
+    if (current.length) rows.push({ items: current, width });
+    return rows;
+  }
+
+  const descends = (rows) =>
+    rows.every((row, i) => i === 0 || row.width <= rows[i - 1].width + 0.5);
+
+  const rows = pack(chips);
+  if (rows.length < 2 || descends(rows)) return;
+
+  const reordered = [...rows]
+    .sort((a, b) => b.width - a.width)
+    .flatMap((row) => row.items);
+
+  // Only commit if the new order genuinely re-wraps into descending rows.
+  if (!descends(pack(reordered))) return;
+
+  reordered.forEach((chip) => list.appendChild(chip));
+}
+
+/* ---- Selected Peaks: scroll-focus the card nearest the viewport centre ----- */
+
+/*
+  Dims every project card and lifts whichever one is closest to the middle
+  of the screen, so scrolling the section reads like hovering each card in
+  turn (see .peaks.is-scroll-focus in css/components.css for the styling
+  and why it uses `scale`/`filter` rather than `transform`/`opacity`).
+
+  Adapted from a reference snippet that measured an inner scroll container
+  (its own scrollTop/clientHeight, with card offsetTop). These cards sit in
+  normal page flow instead, so the maths is rebuilt on
+  getBoundingClientRect() against the viewport. offsetTop would have been
+  wrong here regardless of the scroll source: it's measured from the
+  nearest positioned ancestor, and these five cards live in TWO different
+  containers (the featured one in .peaks__intro-group, the rest in
+  .peaks__track), so their offsetTop values aren't on a common origin.
+  Viewport rects are.
+
+  The reference also activated any card within a fixed 150px of centre.
+  That threshold was tuned to its own 520px demo box; against a real
+  viewport with cards this tall it would leave dead stretches where
+  nothing is active, and could light two at once. This picks the single
+  nearest card instead, then applies a proximity limit — so there is
+  always at most one active card, and it stays active until another one
+  is genuinely closer.
+*/
+function setupProjectScrollFocus() {
+  const section = document.querySelector(".peaks");
+  if (!section) return;
+
+  const cards = Array.from(section.querySelectorAll(".project-card"));
+  if (!cards.length) return;
+
+  // Scroll-linked motion nobody asked for. Bailing out before adding the
+  // class leaves every card at full presence permanently, which is the
+  // correct reduced-motion result — not a dimmed section that never
+  // resolves.
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  // Enables the dimmed resting state. Added here rather than sitting in
+  // the markup so the effect can never strand the cards dim if this
+  // script fails to load or throws before reaching this line.
+  section.classList.add("is-scroll-focus");
+
+  // How far from the viewport centre a card may sit and still count as
+  // focused, as a fraction of viewport height. Generous enough that one
+  // card is essentially always active while scrolling through the
+  // section, but not so wide that a card stays lit well after it has
+  // left the screen.
+  const FOCUS_RANGE_FRACTION = 0.4;
+
+  let ticking = false;
+
+  function apply() {
+    ticking = false;
+
+    const viewportCentre = window.innerHeight / 2;
+    const focusRange = window.innerHeight * FOCUS_RANGE_FRACTION;
+
+    let nearestCard = null;
+    let nearestDistance = Infinity;
+
+    cards.forEach((card) => {
+      const rect = card.getBoundingClientRect();
+      const cardCentre = rect.top + rect.height / 2;
+      const distance = Math.abs(viewportCentre - cardCentre);
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestCard = card;
+      }
+    });
+
+    const focused = nearestDistance <= focusRange ? nearestCard : null;
+    cards.forEach((card) => card.classList.toggle("is-focused", card === focused));
+  }
+
+  function onScroll() {
+    // Coalesces scroll bursts into one update per frame — scroll fires
+    // far more often than the screen repaints, so doing this per event
+    // would be layout reads the browser only ever paints once.
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(apply);
+  }
+
+  apply();
+  // passive: this handler never calls preventDefault, and declaring that
+  // lets the browser scroll without waiting to find out.
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll);
+}
+
+/* ---- Render: What I Do capability timeline --------------------------------- */
 
 function renderCapabilities() {
   const grid = document.querySelector("[data-capabilities-grid]");
   if (!grid) return;
 
+  // Design trial #2: bento-style hover-expand panels — four equal-width
+  // panels in one row at desktop; hovering (or focusing, for keyboard
+  // users) one grows it via flex-grow while the description underneath
+  // fades/expands into view, the others staying visible but narrower.
+  // Collapsed by default so the row reads clean at a glance, per the
+  // researched pattern of "stays uncluttered at rest, rewards actually
+  // engaging with it." tabindex="0" is what lets :focus-within trigger
+  // the same reveal for keyboard users, not just mouse hover — global
+  // focus-visible styling (global.css) already covers plain [tabindex]
+  // elements, so no extra focus-ring CSS is needed here.
+  //
+  // Trial #1 (.capability-timeline/.capability-step, components.css +
+  // layout.css) and the original .capability-card/.capability-grid are
+  // both left in place, unused — reverting to either is just swapping
+  // the classes here and in index.html back, not rebuilding styles.
   grid.innerHTML = capabilities
     .map(
       (capability, index) => `
-      <div class="capability-card reveal">
-        <span class="capability-card__index">0${index + 1}</span>
-        <h3>${capability.title}</h3>
-        <p>${capability.description}</p>
+      <div class="capability-panel" tabindex="0">
+        <div class="capability-panel__body">
+          <h3>${capability.title}</h3>
+          <p>${capability.description}</p>
+        </div>
       </div>`
     )
     .join("");
+}
+
+/* ---- What I Do: shared mountain-range background across the row ----------- */
+
+/*
+  The four .capability-panel elements each show a background-image of the
+  same file (assets/patterns/capability-mountains.svg, set in components.css
+  on .capability-panel::after), but sized and positioned so together they
+  read as ONE continuous mountain range spanning the whole row, not four
+  separate repeating crops — per direct request, referencing the hero
+  scene's own mountain illustration style.
+
+  The trick: size the image (via --mtn-size) to the FULL ROW's width, not
+  each panel's own width, then shift it left (via --mtn-pos, a negative
+  offset) by exactly how far that panel sits from the row's left edge.
+  Every panel is looking through its own window at a different slice of
+  the one same oversized image, so the slices tile back together correctly
+  regardless of how wide each individual panel currently is.
+
+  This has to be recomputed continuously, not just once on page load: the
+  bento hover-expand effect (components.css) changes each panel's actual
+  rendered width via a flex-grow transition, which means every panel's
+  offset-from-the-left shifts too, for the whole ~450ms of that animation,
+  not just at the very start and end. ResizeObserver is what makes the
+  slices visibly pan/shift DURING the hover transition (matching what was
+  asked for) instead of just jumping between two static positions — it
+  fires on every layout-affecting resize of an observed element, which a
+  flex-grow transition produces continuously, frame by frame, as it runs.
+*/
+function setupCapabilityMountains() {
+  const bento = document.querySelector(".capability-bento");
+  if (!bento) return;
+
+  const panels = Array.from(bento.querySelectorAll(".capability-panel"));
+  if (!panels.length) return;
+
+  function update() {
+    const containerRect = bento.getBoundingClientRect();
+    panels.forEach((panel) => {
+      const panelRect = panel.getBoundingClientRect();
+      const offsetX = panelRect.left - containerRect.left;
+      // "auto" height, not "100%": the artwork is a real raster
+      // illustration with a fixed 4:3 aspect ratio (it replaced a
+      // generated SVG that carried preserveAspectRatio="none" and was
+      // built to be stretched to any shape). Forcing 100% height would
+      // squash it into the row's much wider letterbox. auto keeps the
+      // true ratio, letting the image run taller than the panel, and
+      // the vertical percentage below picks which band of it shows.
+      //
+      // 15%, down from 30% — a smaller percentage slides the image DOWN
+      // within each panel (it shows a band nearer the image's own top).
+      // At 30% the summit was landing just above the visible band and
+      // getting clipped; 15% brings the peak fully into frame with a
+      // little sky above it, per direct request.
+      panel.style.setProperty("--mtn-size", `${containerRect.width}px auto`);
+      panel.style.setProperty("--mtn-pos", `-${offsetX}px 15%`);
+    });
+  }
+
+  update();
+  window.addEventListener("resize", update);
+
+  if ("ResizeObserver" in window) {
+    const observer = new ResizeObserver(update);
+    panels.forEach((panel) => observer.observe(panel));
+  } else {
+    // Fallback for browsers without ResizeObserver: at least the resting
+    // and fully-expanded states line up correctly, even without the
+    // continuous mid-transition pan the observer gives for free.
+    panels.forEach((panel) => {
+      panel.addEventListener("mouseenter", update);
+      panel.addEventListener("mouseleave", update);
+      panel.addEventListener("focus", update);
+      panel.addEventListener("blur", update);
+    });
+  }
 }
 
 /* ---- Render: Process timeline ------------------------------------------------ */
@@ -179,15 +502,20 @@ function renderProcessSteps() {
   const timeline = document.querySelector("[data-process-timeline]");
   if (!timeline) return;
 
+  // Editorial ruled-list layout: each step is one full-width row, number
+  // quiet on the left, title and description given real room across the
+  // rest. Replaced a six-column timeline whose narrow columns squeezed
+  // every description into a cramped block, and whose connecting route
+  // line was dropped per direct request. The circular .route-marker
+  // badge went with it — a number set as plain type suits an editorial
+  // list, where a filled badge would read as a leftover UI chip.
   timeline.innerHTML = processSteps
     .map(
       (item) => `
-      <div class="process-step reveal">
-        <span class="route-marker" aria-hidden="true">${item.step}</span>
-        <div class="process-step__content">
-          <h3 class="process-step__title">${item.title}</h3>
-          <p>${item.description}</p>
-        </div>
+      <div class="process-step reveal reveal--repeat">
+        <span class="process-step__number" aria-hidden="true">${item.step}</span>
+        <h3 class="process-step__title">${item.title}</h3>
+        <p class="process-step__desc">${item.description}</p>
       </div>`
     )
     .join("");
@@ -199,17 +527,244 @@ function renderSkillGroups() {
   const grid = document.querySelector("[data-skills-grid]");
   if (!grid) return;
 
+  // Each skill's `projects` entries are matched against real project
+  // titles by string. A typo wouldn't throw — the skill would just
+  // silently never match any filter, which is exactly the kind of bug
+  // that survives for months. Surfacing it in the console keeps the
+  // failure loud without breaking the render.
+  const knownTitles = new Set(projects.map((project) => project.title));
+  skillGroups.forEach((group) => {
+    group.items.forEach((item) => {
+      item.projects
+        .filter((title) => !knownTitles.has(title))
+        .forEach((title) =>
+          console.warn(
+            `TRP site: skill "${item.name}" lists project "${title}", which doesn't match any project title in js/data.js.`
+          )
+        );
+    });
+  });
+
   grid.innerHTML = skillGroups
     .map(
       (group) => `
       <div class="skill-group reveal">
         <h3 class="skill-group__title">${group.title}</h3>
         <ul class="skill-group__list">
-          ${group.items.map((item) => `<li>${item}</li>`).join("")}
+          ${group.items.map(renderSkillChip).join("")}
         </ul>
       </div>`
     )
     .join("");
+}
+
+/*
+  A skill chip carries the projects behind it in a data attribute, so the
+  filter in setupSkillsCrossHighlight() can match without re-reading
+  js/data.js. Pipe-separated rather than JSON: project titles contain
+  spaces but no pipes, and this avoids escaping quotes inside an HTML
+  attribute.
+
+  The visible project count was removed per direct request — the chips
+  read cleaner without it, and selecting a project in the legend already
+  shows which skills it involved, which is the same evidence shown a
+  clearer way. The count survives in the aria-label, since a screen
+  reader user can't see the highlight the legend produces and would
+  otherwise lose that information entirely.
+*/
+function renderSkillChip(item) {
+  const count = item.projects.length;
+  const label =
+    count === 0
+      ? item.name
+      : `${item.name}, used on ${count} ${count === 1 ? "project" : "projects"}`;
+
+  return `<li class="skill-chip" data-skill-projects="${item.projects.join("|")}" aria-label="${label}">${item.name}</li>`;
+}
+
+/* ---- Tools & Skills: filter skills by project ------------------------------- */
+
+/*
+  Renders the project legend that sits above the skill groups. Selecting a
+  project dims every skill that project didn't use, so the section can be
+  read as "here's what actually went into this piece of work" rather than
+  as an unverifiable list of everything I've touched.
+
+  Real <button>s, not styled divs: these are interactive controls, so they
+  need keyboard focus, Enter/Space activation, and a pressed state for
+  free rather than reimplemented. aria-pressed is what communicates the
+  toggle state to assistive tech.
+*/
+function renderSkillsLegend() {
+  const legend = document.querySelector("[data-skills-legend]");
+  if (!legend) return;
+
+  legend.innerHTML = projects
+    .map(
+      (project) => `
+      <button type="button" class="skills-legend__item" data-project="${project.title}" aria-pressed="false">
+        <span class="skills-legend__num" aria-hidden="true">${project.number}</span>
+        ${project.title}
+      </button>`
+    )
+    .join("");
+}
+
+/*
+  Wires the legend to the skill chips.
+
+  Click to pin, hover to preview. The hover preview is the nicer
+  interaction, but it's mouse-only — click/tap is what makes this work on
+  touch, where hover doesn't meaningfully exist, and via keyboard. A
+  pinned selection survives the pointer leaving; an un-pinned hover
+  reverts on mouseleave.
+
+  Filtering is a class toggle on the container plus one on each matching
+  chip, so all the actual visual work stays in CSS (components.css) and
+  this only decides what matches.
+*/
+function setupSkillsCrossHighlight() {
+  const section = document.querySelector("#tools-and-skills");
+  if (!section) return;
+
+  const legend = section.querySelector("[data-skills-legend]");
+  const grid = section.querySelector("[data-skills-grid]");
+  if (!legend || !grid) return;
+
+  const buttons = Array.from(legend.querySelectorAll(".skills-legend__item"));
+  const chips = Array.from(grid.querySelectorAll(".skill-chip"));
+  if (!buttons.length || !chips.length) return;
+
+  // The pinned (clicked) project, or null for none. Hovering shows a
+  // different project temporarily without disturbing this.
+  let pinned = null;
+
+  function paint(activeTitle) {
+    // No active project means no filtering at all — every chip back to
+    // full strength, rather than everything dimmed equally.
+    grid.classList.toggle("is-filtering", Boolean(activeTitle));
+
+    chips.forEach((chip) => {
+      const list = (chip.dataset.skillProjects || "").split("|").filter(Boolean);
+      chip.classList.toggle("is-match", Boolean(activeTitle) && list.includes(activeTitle));
+    });
+
+    buttons.forEach((button) => {
+      button.classList.toggle("is-active", button.dataset.project === activeTitle);
+      // Reflects the PINNED state only, not the transient hover preview —
+      // aria-pressed describes what's actually selected, and flipping it
+      // on hover would announce selections that were never made.
+      button.setAttribute("aria-pressed", String(button.dataset.project === pinned));
+    });
+  }
+
+  buttons.forEach((button) => {
+    const title = button.dataset.project;
+
+    button.addEventListener("click", () => {
+      // Clicking the pinned project again clears it — without this the
+      // filter would be a one-way trip with no way back to the full list.
+      pinned = pinned === title ? null : title;
+      paint(pinned);
+    });
+
+    button.addEventListener("mouseenter", () => paint(title));
+    button.addEventListener("focus", () => paint(title));
+    button.addEventListener("mouseleave", () => paint(pinned));
+    button.addEventListener("blur", () => paint(pinned));
+  });
+
+  paint(null);
+}
+
+/* ---- Contact form ----------------------------------------------------------------- */
+
+/*
+  Upgrades the contact form to submit in the background, so a person who
+  fills it in stays on the page instead of being handed off to Formspree's
+  own confirmation screen.
+
+  Strictly an enhancement. The form in index.html has a real action and
+  method, so with JavaScript off or broken it still posts normally and
+  Formspree handles it — this only intercepts once it's confirmed it can
+  do the job properly.
+*/
+function setupContactForm() {
+  const form = document.querySelector("[data-contact-form]");
+  if (!form) return;
+
+  const status = form.querySelector("[data-form-status]");
+  const submitButton = form.querySelector('button[type="submit"]');
+  if (!status || !submitButton) return;
+
+  // fetch and FormData are what this relies on. Anything without them
+  // gets the native form post, which works fine — better that than
+  // intercepting the submit and then failing to send it.
+  if (!("fetch" in window) || !("FormData" in window)) return;
+
+  // The endpoint is wired up (Formspree form xlgqkeyo), so this guard
+  // shouldn't fire. Kept as a safety net: if the action is ever reset to
+  // a placeholder — copying this file as a starting point for another
+  // site is the likely way — the form says so instead of posting to a
+  // dead URL and reporting a generic failure that looks like a bug.
+  const PLACEHOLDER = "YOUR_FORM_ID";
+  const originalLabel = submitButton.textContent;
+
+  function setStatus(message, state) {
+    status.textContent = message;
+    status.classList.toggle("is-error", state === "error");
+    status.classList.toggle("is-success", state === "success");
+  }
+
+  form.addEventListener("submit", (event) => {
+    // Let the browser run its own validation first. If it fails, do
+    // nothing — the native messages are already accessible and
+    // localised, and duplicating them here would just be noise.
+    if (!form.checkValidity()) return;
+
+    event.preventDefault();
+
+    // Guard against the endpoint never having been filled in. Without
+    // this the form would post to a dead URL and report a generic
+    // failure, which looks like a bug rather than an unfinished setup.
+    if (form.action.includes(PLACEHOLDER)) {
+      setStatus(
+        "This form isn't connected yet — please use the email address below in the meantime.",
+        "error"
+      );
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Sending…";
+    setStatus("", null);
+
+    fetch(form.action, {
+      method: form.method,
+      body: new FormData(form),
+      // Formspree returns JSON only when asked; without this it replies
+      // with a redirect to its own HTML page.
+      headers: { Accept: "application/json" },
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Form endpoint returned ${response.status}`);
+        form.reset();
+        setStatus("Thanks — message sent. I'll get back to you within a day.", "success");
+      })
+      .catch((error) => {
+        console.error("TRP site: contact form submission failed.", error);
+        // Names the fallback rather than just reporting failure — a dead
+        // end here costs a real enquiry.
+        setStatus(
+          "Something went wrong sending that. Please email TravisPeakman@outlook.com instead.",
+          "error"
+        );
+      })
+      .finally(() => {
+        submitButton.disabled = false;
+        submitButton.textContent = originalLabel;
+      });
+  });
 }
 
 /* ---- Mobile nav toggle ------------------------------------------------------------ */
@@ -276,6 +831,17 @@ function setupActiveSectionNav() {
               const fraction = (linkRect.right - trackRect.left) / trackRect.width;
               progressFill.style.width = `${Math.max(0, Math.min(1, fraction)) * 100}%`;
             }
+          } else if (id === "contact") {
+            // Contact is the end of the route, not a stop along it, so
+            // it isn't in routeLinks — but the line should still travel
+            // the whole way to it. The track now ends at the Contact
+            // button's left edge (setupNavProgress), so a full fill
+            // arrives exactly at the button.
+            //
+            // Previously this fell through to the reset below and the
+            // line vanished the instant you reached the last section,
+            // which read as the route failing rather than completing.
+            progressFill.style.width = "100%";
           } else {
             // The intersecting section isn't one of the 5 tracked
             // stops — the hero (id="top") is also inside <main
@@ -314,17 +880,24 @@ function setupNavProgress() {
   const nav = document.querySelector(".main-nav");
   const track = document.querySelector(".nav-progress");
   const firstLink = document.querySelector('.main-nav__link[href="#work"]');
-  const lastLink = document.querySelector('.main-nav__link[href="#about"]');
-  if (!nav || !track || !firstLink || !lastLink) return;
+  // The track now runs to the CONTACT button rather than stopping at
+  // About. Contact is the end of the route, so the line should be able to
+  // reach it — previously the fill had nowhere left to go once you passed
+  // About, and reset to nothing at the very moment the journey finished.
+  //
+  // Measured to the button's LEFT edge, so a full fill arrives at the
+  // button and stops, rather than running underneath it.
+  const endLink = document.querySelector('.main-nav__link[href="#contact"]');
+  if (!nav || !track || !firstLink || !endLink) return;
 
   function position() {
     const navRect = nav.getBoundingClientRect();
     const firstRect = firstLink.getBoundingClientRect();
-    const lastRect = lastLink.getBoundingClientRect();
-    if (!firstRect.width || !lastRect.width) return;
+    const endRect = endLink.getBoundingClientRect();
+    if (!firstRect.width || !endRect.width) return;
 
     track.style.left = `${firstRect.left - navRect.left}px`;
-    track.style.width = `${lastRect.right - firstRect.left}px`;
+    track.style.width = `${endRect.left - firstRect.left}px`;
     track.style.top = `${firstRect.bottom - navRect.top}px`;
   }
 
@@ -355,13 +928,32 @@ function setupScrollReveal() {
 
   revealItems.forEach((item) => item.classList.add("reveal--pending"));
 
+  // Two behaviours from one observer.
+  //
+  // Default: reveal once, then stop watching. Most of the page should
+  // settle and stay settled — re-animating an About paragraph every time
+  // it scrolls past would be noise, not polish.
+  //
+  // Opt-in via .reveal--repeat: re-arm on the way out so the element
+  // animates again next time it enters. Used by the Process cards, whose
+  // zipper is the point of that section and reads as broken if it only
+  // ever plays once. Opt-in rather than global precisely because it's the
+  // exception.
   const observer = new IntersectionObserver(
     (entries, obs) => {
       entries.forEach((entry) => {
+        const repeats = entry.target.classList.contains("reveal--repeat");
+
         if (entry.isIntersecting) {
           entry.target.classList.add("is-visible");
-          obs.unobserve(entry.target);
+          if (!repeats) obs.unobserve(entry.target);
+          return;
         }
+
+        // Only repeating elements get reset. Without this guard a
+        // non-repeating element would still be observed on the first
+        // pass and could be un-revealed before it ever settled.
+        if (repeats) entry.target.classList.remove("is-visible");
       });
     },
     { threshold: 0.15 }

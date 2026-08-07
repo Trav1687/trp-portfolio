@@ -34,7 +34,15 @@
    snap when someone's deliberately stopping mid-section the way full
    mandatory would. */
 section {
-  padding-block: var(--space-section);
+  /* --space-xl (was --space-section, up to 8rem top/bottom) — per
+     direct request that every section share the exact same padding
+     so the page's rhythm reads as uniform. This used to be the
+     variable only #what-i-do was trimmed down to (its own solid Slate
+     Blue Grey background reading as too heavy at the larger size);
+     now every section matches that same smaller amount instead of
+     just the one, so #what-i-do's own now-redundant padding-block
+     override has been removed below. */
+  padding-block: var(--space-xl);
   scroll-snap-align: start;
   scroll-snap-stop: always;
   scroll-margin-top: 5rem;
@@ -278,6 +286,25 @@ section {
   background-repeat: no-repeat;
   background-size: cover;
   background-position: right center;
+  /* Matches the scene image's own left-edge colour (sampled directly off
+     trp-hero-scene-wide.webp: #020F1E, notably darker than the hero's
+     #14213D Deep Navy).
+
+     This fixes a faint vertical line visible on wide monitors. The image
+     is 1.777:1, and from 1600px up the rules below size it `auto 100%`
+     rather than `cover` — deliberately, to stop it over-zooming on very
+     wide screens. The side effect is that past a certain width the image
+     stops short of the hero's left edge, and its own edge lands mid-hero
+     as a hard seam between those two navies. Painting this box in the
+     image's edge colour means both sides of that boundary are identical,
+     so there's nothing left to see.
+
+     Not visible at narrower widths: `cover` fills the box completely
+     there, so this colour never shows. The .hero::after overlay
+     (near-opaque Deep Navy on the left, fading right) sits above this
+     and blends it back toward navy where the copy sits, so the darker
+     tone doesn't change how the text side reads. */
+  background-color: #020f1e;
 }
 
 /* Load-in glow, built as pseudo-elements on .hero__scene rather than a
@@ -705,28 +732,157 @@ section {
    tends to run once the project cards stack up — and background-size:
    100% 100% stretches that single image to exactly fill the section,
    however tall it actually ends up being, rather than tiling or
-   cropping it. No repeat, so no seam. A random smooth elevation field
-   contoured at 20 levels gives the continuous nested lines a real topo
-   map has, in fine (0.45pt) Slate Blue Grey strokes at low opacity. */
+   cropping it. No repeat, so no seam. A winding river valley runs down
+   the canvas, opening up below one deliberately placed peak near the
+   very top, centered roughly where the hero section's own path exits
+   near the figure's feet once the two sections sit back to back on
+   the page. The valley drifts LEFT as it goes down (not side to side
+   evenly), per direct feedback, since the hero scene's trees sit on
+   the right side of that image — keeping this section's own action
+   biased left avoids the two competing for the same visual space.
+   Lower ridge plateau plus several small, low-amplitude foothill
+   bumps scattered between the main peaks, per direct feedback wanting
+   some genuinely low elevation numbers (25 to roughly 100) visible
+   alongside the tall dramatic summits, rather than the whole canvas
+   reading as uniformly high once away from the valley floor. Elevation
+   numbers labeled on every level (spaced further apart via a wider
+   level step so they don't double up) in Trail Orange, contour lines
+   in Slate Blue Grey. */
 .peaks {
   background-color: var(--color-bg-alt);
-  /* ?v=3 -- the dev server (server.js) sends no Cache-Control header at
-     all, so the browser is free to (and does) keep serving whatever it
-     first cached at this exact URL; bump this number any time
+  /* ?v=11 -- zoomed out again, roughly double the previous step, per
+     direct request. Feature sizes now divided by 1.85 (was 1.35 at v10,
+     25 originally). Three things had to scale alongside it, each learned
+     from an earlier attempt that got it wrong: the contour interval
+     widened again to 62, because a wider view packs more elevation
+     change into the same canvas and holding the interval fixed produces
+     a dense unreadable mat of lines; the peak grid grew to 15 rows by 6
+     columns, because fewer, larger features leave visible empty bands
+     once shrunk; and the foothill count rose to 48 so low elevation
+     numbers stay present across the map rather than everything reading
+     as high ground. Peaks sit at absolute canvas positions rather than
+     offsets from the river centreline — at this scale the river occupies
+     only the middle third, and river-relative placement left both edges
+     of the canvas bare.
+
+     ?v=13 makes the river the FILLED ZERO-ELEVATION REGION rather than a
+     drawn ribbon (?v=12's approach, which was a constant-width stroke
+     laid over the map). The terrain is now built so the valley floor
+     sits at exactly 0 and everything climbs from there, and a filled
+     contour between -1 and 0.5 covers whatever hasn't risen out of the
+     water yet. That's what makes the water widen where the valley opens
+     and pinch where it narrows — it's the shape of the low ground, not a
+     line following a centreline.
+
+     Three things are load-bearing for this. The floor width grows
+     downstream (15 to 47 units) with smoothed noise on the banks, so
+     they read as organic rather than as two parallel edges. The peak
+     field is CARVED AWAY inside the floor, ramping back in across the
+     banks — without that, the gaussian tails of nearby peaks leak
+     elevation into the riverbed and break the zero region into
+     disconnected puddles instead of one continuous watercourse. And
+     (?v=15) the elevation field is gaussian smoothed before contouring.
+
+     That last one fixes banks that read as jagged. Contours are traced
+     on the sampling grid, where each cell is about 2 canvas units, so a
+     bank sitting only 8 to 25 units from the centreline was described by
+     very few cells and came out stair-stepped. Smoothing the field lets
+     the tracer interpolate a clean boundary, and it's applied to the
+     field used for the lines as well as the fill so the contours stay
+     consistent with the water they surround. The bank noise was also
+     slackened from sigma 25 to 55 — at the tighter value it wobbled on a
+     short enough wavelength to read as ragged rather than meandering.
+
+     ?v=16 fixes a break in the river near the top and adds the 0
+     markers. The break was a side effect of the smoothing above: the
+     headwater channel was only about four sampling cells across, narrow
+     enough that the blur lifted it over the fill threshold and pinched
+     the region shut. The headwater half-width is now 30 units rather
+     than 15. Connectivity is verified in the generator with
+     scipy.ndimage.label — one region, spanning every row, no strays —
+     rather than by eye, since a visual check already missed this once.
+
+     The waterline is now also traced as its own contour and labelled 0,
+     stating the datum outright. Those labels are placed manually at
+     fixed intervals: matplotlib's automatic placement finds few suitable
+     spots along long, near-parallel bank lines and was emitting almost
+     none of them.
+
+     ?v=17 adds peak markers and names the river. Peaks are open
+     triangles with a rounded elevation beside them, the standard topo
+     convention, drawn only for the tallest summits and skipped wherever
+     one would land near the channel or crowd a marker already placed —
+     a triangle sitting in the water reads as a mistake rather than as
+     map detail. The river is labelled PEAKMAN RIVER, following the
+     channel's own direction.
+
+     That label's rotation has to be computed in DISPLAY space, not data
+     space: ax.invert_yaxis() means increasing data y runs downward on
+     screen, so the vertical component is negated. Taking the angle
+     straight from the data coordinates renders the label almost
+     horizontal across a river that runs vertically (confirmed on the
+     first attempt).
+
+     Everything added here is held at the same faint weight as the
+     contours. This is background texture sitting behind real content, so
+     map detail that competed with the project cards on top of it would
+     be a mistake however accurate it looked.
+
+     Slate Blue Grey at 0.50 opacity (?v=19; stepped down from 0.9
+     originally, through 0.75, 0.70 and 0.60) remains the only solid fill
+     on the map; everything else is thin contour stroke, which is what
+     makes that colour read as water rather than as more map furniture.
+
+     629KB. Still the heaviest single asset on the page — worth
+     revisiting before launch if page weight matters, where a coarser
+     sampling grid would trade a little line smoothness for size.
+
+     The dev server (server.js) sends no Cache-Control header at all, so
+     the browser is free to (and does) keep serving whatever it first
+     cached at this exact URL; bump this number any time
      topo-pattern.svg's contents change, or the browser just serves the
-     old one again. This particular bump matters more than the last:
-     the actual top/bottom gap bug was the SVG's own missing
-     preserveAspectRatio="none" (now added, see the comment inside
-     topo-pattern.svg) — without it, the SVG ignored this background-
-     size: 100% 100% and letterboxed itself to its own 1152:2592 aspect
-     inside the section's much taller real box, which is why changing
-     the artwork's density alone never visibly fixed anything. */
-  background-image: url("../assets/patterns/topo-pattern.svg?v=3");
+     old one again. Earlier bumps fixed real bugs still worth knowing
+     about, both preserved in the regenerated file: ?v=8 corrected a
+     y-axis flip (matplotlib puts data y=0 at the BOTTOM by default, so
+     the intended peak-near-the-top rendered upside down), and ?v=3 added
+     preserveAspectRatio="none" so the SVG stretches to the section
+     instead of letterboxing. */
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+}
+
+/* The map itself, on its own layer purely so it can be faded to 50%.
+
+   It can't stay as a background-image on .peaks: `opacity` applies to an
+   element and everything inside it, so setting it there would fade the
+   project cards and all the copy along with the map. Moving the image to
+   a pseudo-element behind the content lets the map alone be dialled back
+   while the cards on top stay at full strength.
+
+   Note this is a different mechanism from the transparency already baked
+   into the SVG's own colours (the river's 0.50 fill, the contours' 0.55
+   stroke alpha). Those set the relative weight of elements WITHIN the
+   map; this fades the finished map as a whole against the section
+   background. */
+.peaks::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("../assets/patterns/topo-pattern.svg?v=19");
   background-size: 100% 100%;
   background-position: top center;
   background-repeat: no-repeat;
-  border-top: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
+}
+
+/* Lifts the section's real content above the map layer — without this,
+   .peaks::before (positioned) would paint over the in-flow container. */
+.peaks > .container {
+  position: relative;
+  z-index: 1;
 }
 
 /* Groups the section header with the first (featured) project card
@@ -752,9 +908,70 @@ section {
   margin-bottom: var(--space-xl);
 }
 
+/* This header sits in a card because plain text directly on the
+   topo-pattern was getting lost in the contour lines behind it. It now
+   matches .project-card exactly — same Slate Blue Grey fill at 90%, same
+   Deep Navy 2px inset ring, same 0.5rem chamfer — rather than the
+   off-white treatment it had while the project cards below it still
+   alternated colours. Full width (no max-width) so it reads as the same
+   size card as those; the readable line-length is capped on the
+   paragraph itself instead, so copy doesn't stretch edge to edge inside
+   the wider card.
+
+   Background here is the RING; the fill lives on ::after below. See
+   .project-card in components.css for why the ring can't be a real
+   border on a chamfered shape, and why it's Soft Sand rather than the
+   Deep Navy it used to be. */
 .peaks__intro {
-  max-width: 34rem;
+  position: relative;
+  z-index: 0;
   margin-bottom: var(--space-xl);
+  background: var(--color-border);
+  color: var(--color-warm-off-white);
+  padding: var(--space-card);
+  --card-chamfer: 0.5rem;
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+}
+
+/* Identical inset geometry to .project-card::after — 2px inset with the
+   chamfer + 0.83px perpendicular correction on the diagonals. */
+.peaks__intro::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.83px) 2px,
+    calc(100% - var(--card-chamfer) - 0.83px) 2px,
+    calc(100% - 2px) calc(var(--card-chamfer) + 0.83px),
+    calc(100% - 2px) calc(100% - var(--card-chamfer) - 0.83px),
+    calc(100% - var(--card-chamfer) - 0.83px) calc(100% - 2px),
+    calc(var(--card-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--card-chamfer) - 0.83px),
+    2px calc(var(--card-chamfer) + 0.83px)
+  );
+}
+
+.peaks__intro p {
+  max-width: 34rem;
+  margin-bottom: 0;
+}
+
+/* The hero's "View My Work" jumps here. Without a scroll-margin the
+   sticky header would sit over the top of the card on arrival — the same
+   offset .project-card already uses for its own scroll alignment. */
+#featured-project {
+  scroll-margin-top: 5rem;
 }
 
 /* A pinned/horizontal-scroll version of this track lived here (see the
@@ -776,12 +993,26 @@ section {
    continuous cooler-toned stretch between the dark hero and the
    lighter sections further down the page. .capability-card keeps its
    own light card background (components.css), so only the bare
-   section-heading text needs the inherited light color here. */
+   section-heading text needs the inherited light color here.
+
+   No padding-block override anymore — this section used to be trimmed
+   down on its own (its solid Slate Blue Grey reading as too heavy at
+   the generic `section` rule's original larger size), but every
+   section now shares that same smaller padding (see `section` in this
+   file), so a separate override here would just be dead weight. The
+   color itself is back to the plain solid Slate Blue Grey (a
+   color-mix-lightened version was tried here too, but reverted per
+   direct feedback). */
 #what-i-do {
   background: var(--color-slate-blue-grey);
   color: var(--color-warm-off-white);
 }
 
+/* .capability-grid (below) is the previous four-boxed-card layout — left
+   in place, unused, while .capability-timeline (design trial, per direct
+   request) is what index.html/js/main.js actually render into now. Easy
+   revert path: swap the class back in both files rather than rebuild
+   this from scratch if the trial doesn't land. */
 .capability-grid {
   display: grid;
   gap: var(--space-card);
@@ -800,32 +1031,43 @@ section {
   }
 }
 
-/* ---- Process --------------------------------------------------------------- */
-
-.process-timeline {
+/* Horizontal timeline strip — same structure as .process-timeline below
+   (vertical stack on mobile/tablet, single connecting line switching
+   from a vertical rule on the left to a horizontal rule along the top
+   once there's room for one row). Kept as its own class rather than
+   reusing .process-timeline directly so this section's spacing/line
+   color can be tuned independently of Process later without the two
+   fighting over one shared rule. Switches to a row at 1080px (not
+   Process's 960px) to match the four-items-in-one-row threshold the old
+   .capability-grid used, since that's the same four items. */
+.capability-timeline {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
   position: relative;
 }
 
-.process-timeline::before {
+.capability-timeline::before {
   content: "";
   position: absolute;
   left: 19px;
   top: 0.5rem;
   bottom: 0.5rem;
   width: 2px;
-  background: var(--color-border);
+  /* Warm Off-White at low opacity, not --color-border — --color-border
+     is tuned for the light sections (Process sits on the plain light
+     background), and would barely register against this section's own
+     Slate Blue Grey. */
+  background: rgba(248, 246, 240, 0.2);
 }
 
-@media (min-width: 960px) {
-  .process-timeline {
+@media (min-width: 1080px) {
+  .capability-timeline {
     flex-direction: row;
     gap: var(--space-md);
   }
 
-  .process-timeline::before {
+  .capability-timeline::before {
     left: 0;
     right: 0;
     top: 19px;
@@ -835,41 +1077,397 @@ section {
   }
 }
 
-/* ---- Tools and Skills -------------------------------------------------------- */
-
-.skills-grid {
-  display: grid;
-  gap: var(--space-lg);
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 720px) {
-  .skills-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+/* Design trial #2: bento hover-expand row. Plain stacked column below
+   1080px (hover doesn't really exist on touch, so there's no reason to
+   fight for space there) — becomes a fixed-height single row at 1080px+,
+   where each .capability-panel's own flex-grow transition (components.css)
+   is what actually does the expanding. The fixed height (rather than
+   auto) is what keeps the row from jumping vertically as descriptions
+   fade in/out inside each panel on hover — only the widths change. */
+.capability-bento {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
 @media (min-width: 1080px) {
-  .skills-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .capability-bento {
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--space-sm);
+    /* Trimmed from 22rem — combined with the icon now filling the top
+       of each panel (components.css), the taller height was leaving
+       more empty space than content, which read as plain/bare
+       (confirmed in testing). */
+    height: 19rem;
   }
+}
+
+/* ---- Process --------------------------------------------------------------- */
+
+/* Editorial ruled list. Replaced a six-across timeline with a connecting
+   route line: the line was dropped per direct request, and the six
+   narrow columns it needed were squeezing every description into a
+   cramped four-line block. Full-width rows separated by hairline rules
+   read like a magazine contents page, give each step real room, and
+   scale down to one column without changing shape — the previous layout
+   had to switch orientation entirely at 960px.
+
+   The rule between rows comes from each step's own border-top
+   (components.css) rather than a gap plus a separate divider element, so
+   there's nothing to keep in sync when steps are added or removed. */
+/* Continues the Selected Peaks map through this section, so the two read
+   as one landscape with What I Do's solid blue block sitting over the
+   middle of it — the match-book effect. topo-pattern-process.svg is a
+   real continuation rather than a second map: the river's drift and
+   meander phase carry on from where the first one stopped, and it enters
+   at 33.5% of the width, exactly the fraction the first map leaves off
+   at. Both use background-size: 100% 100%, so that horizontal percentage
+   is what aligns; the differing vertical stretch doesn't affect it.
+
+   Same structure as .peaks — a pseudo-element rather than a background
+   on the section itself, because `opacity` would otherwise fade the
+   section's own text along with the map. Kept at the same 0.5 so both
+   maps sit at equal weight; a difference here would break the illusion
+   as surely as a misaligned river would. The section keeps its plain
+   light background underneath. */
+#process {
+  position: relative;
+}
+
+#process::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("../assets/patterns/topo-pattern-process.svg?v=1");
+  background-size: 100% 100%;
+  background-position: top center;
+  background-repeat: no-repeat;
+}
+
+#process > .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Gap between cards now, rather than hairline rules between rows. The
+   ruled-list treatment relied on the section having a plain background:
+   with the map behind it, thin rules read as more contour lines and the
+   copy sat directly on the terrain. Cards solve both. */
+.process-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* The section heading gets the same card, for the same reason the
+   Selected Peaks heading did — text directly on the contours is hard to
+   read, and it's the same map underneath. */
+#process .section-heading {
+  position: relative;
+  z-index: 0;
+  max-width: none;
+  padding: var(--space-card);
+  color: var(--color-warm-off-white);
+  --card-chamfer: 0.5rem;
+  filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.3));
+}
+
+#process .section-heading > * {
+  max-width: 40rem;
+}
+
+/* Ring layer, in the full outer shape. Shape lives on pseudo-elements
+   rather than the heading itself because clip-path is applied after
+   filter — a chamfer on the element would clip its own shadow away.
+   Soft Sand for the same reason as .process-step: these are navy cards,
+   so the Deep Navy ring used on the site's light-filled cards would
+   disappear into the fill. */
+#process .section-heading::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background: var(--color-border);
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+}
+
+/* Fill, inset 2px. Matches the step cards' own 80% — a heading card at
+   full opacity next to translucent ones would read as a different
+   component. */
+#process .section-heading::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.83px) 2px,
+    calc(100% - var(--card-chamfer) - 0.83px) 2px,
+    calc(100% - 2px) calc(var(--card-chamfer) + 0.83px),
+    calc(100% - 2px) calc(100% - var(--card-chamfer) - 0.83px),
+    calc(100% - var(--card-chamfer) - 0.83px) calc(100% - 2px),
+    calc(var(--card-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--card-chamfer) - 0.83px),
+    2px calc(var(--card-chamfer) + 0.83px)
+  );
+}
+
+/* ---- Tools and Skills -------------------------------------------------------- */
+
+/* Same Slate Blue Grey as What I Do, per direct request — .skill-group
+   keeps its own light card background (components.css, same pattern
+   as .capability-card there), so only the bare section-heading text
+   needs the inherited light color here. */
+#tools-and-skills {
+  background: var(--color-slate-blue-grey);
+  color: var(--color-warm-off-white);
+}
+
+/* Project filter row above the skill groups. Wraps rather than scrolls —
+   five short buttons fit comfortably on a phone across two lines, and a
+   horizontal scroller would hide options off-screen with no affordance
+   telling you they're there. */
+.skills-legend {
+  display: flex;
+  flex-wrap: wrap;
+  /* Nudged up with the buttons themselves — at 0.5rem the larger
+     controls were nearly touching. */
+  gap: 0.6rem;
+  margin-bottom: var(--space-md);
+}
+
+/* Editorial ruled list, deliberately the same structure as
+   .process-timeline directly above it: one full-width row per group,
+   hairline rules between, label on the left and content on the right.
+
+   Replaced five boxed cards. Three reasons, all visible in testing:
+   the page went straight from Process (which had just dropped its own
+   boxes) into another set of panels, breaking the rhythm; section → card
+   → chip was three levels of containment for what is really just a
+   labelled list; and the five cards were flat empty rectangles in a page
+   where every other card carries artwork or colour, so they read as
+   unfinished rather than restrained.
+
+   Rules come from each row's own border-top plus this container's
+   border-bottom — nothing to keep in sync when a group is added or
+   removed, same as Process. */
+.skills-grid {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid rgba(248, 246, 240, 0.22);
 }
 
 /* ---- About ---------------------------------------------------------------------- */
 
+/* .about__inner (a plain 46rem centred text column) was the whole About
+   section until this pass — the only section left with no layout of its
+   own, and visibly the plainest block on the page. Kept as an unused rule
+   only because privacy.html may still reference it; the section itself
+   now uses .about__grid below. */
 .about__inner {
   max-width: 46rem;
 }
 
+/* Third and last stretch of the continuous topo map. Same structure and
+   the same 0.5 opacity as .peaks and #process — Tools & Skills sits
+   between Process and here as a solid blue block, so the landscape
+   surfaces, hides, and surfaces again. The map enters this section at
+   28.2% of the width, exactly where the Process map leaves off. */
+#about {
+  position: relative;
+}
+
+#about::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("../assets/patterns/topo-pattern-about.svg?v=1");
+  background-size: 100% 100%;
+  background-position: top center;
+  background-repeat: no-repeat;
+}
+
+#about > .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Photo alongside the story — the pattern that came up in essentially
+   every portfolio About example researched. Single column on mobile with
+   the photo first, becoming a two-column split at 860px.
+
+   The photo column is fixed at 18rem rather than a fraction, so it stays
+   a portrait beside the text instead of ballooning on wide screens; the
+   text takes whatever's left. align-items: start keeps the photo at its
+   natural height rather than stretching to match a taller text column. */
+.about__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+@media (min-width: 860px) {
+  .about__grid {
+    /* 20rem, up from 18rem — the photo was reading as small against a
+       text column several times its width. */
+    grid-template-columns: 20rem 1fr;
+    gap: var(--space-xl);
+  }
+}
+
+/* Photo plus the quick-facts list beneath it. The facts exist partly to
+   fill what was a large dead gap under the photo: the text column runs
+   roughly 300px taller, so the left column simply stopped and left the
+   section looking bottom-heavy on one side. */
+.about__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* The story sits on the same Deep Navy card as the Process section, for
+   the same reason: it's on the topo map now, and copy directly over
+   contour lines is hard to read. max-width caps the measure independently
+   of the grid column, so the text doesn't run the full width of a large
+   monitor. */
+.about__body {
+  max-width: 44rem;
+  position: relative;
+  z-index: 0;
+  padding: var(--space-card);
+  color: var(--color-warm-off-white);
+  --card-chamfer: 0.5rem;
+  filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Ring + fill on pseudo-elements rather than the element, so the card's
+   shadow isn't clipped away by its own chamfer. Soft Sand ring and 80%
+   Deep Navy fill, identical to .process-step. */
+.about__body::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background: var(--color-border);
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+}
+
+.about__body::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.83px) 2px,
+    calc(100% - var(--card-chamfer) - 0.83px) 2px,
+    calc(100% - 2px) calc(var(--card-chamfer) + 0.83px),
+    calc(100% - 2px) calc(100% - var(--card-chamfer) - 0.83px),
+    calc(100% - var(--card-chamfer) - 0.83px) calc(100% - 2px),
+    calc(var(--card-chamfer) + 0.83px) calc(100% - 2px),
+    2px calc(100% - var(--card-chamfer) - 0.83px),
+    2px calc(var(--card-chamfer) + 0.83px)
+  );
+}
+
+.about__actions {
+  margin-top: var(--space-lg);
+}
+
 /* ---- Contact / Footer ------------------------------------------------------------ */
 
+/* Slate Blue Grey now (was --color-inverse-bg, i.e. Deep Navy), per
+   direct request to match What I Do and Tools & Skills. Text stays
+   the same light color either way (--color-inverse-text is Warm
+   Off-White), and .btn--primary/.btn--on-dark in the actions below
+   don't key off this section's background at all, so no other part
+   of Contact needed to change for this to stay readable. */
 .contact {
-  background: var(--color-inverse-bg);
+  background: var(--color-slate-blue-grey);
   color: var(--color-inverse-text);
 }
 
 .contact__inner {
-  max-width: 36rem;
+  max-width: 40rem;
+}
+
+/* Status, response time, location. A row on desktop, stacking on narrow
+   screens. Dot separators between items come from the ::before below
+   rather than being typed into the markup, so nothing needs re-editing
+   if an item is added or removed. */
+.contact__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem var(--space-md);
+  margin-top: var(--space-md);
+  font-size: var(--fs-small);
+  /* Soft Sand on its own only reaches 4.16:1 against this section's
+     Slate Blue Grey — under the 4.5 needed at this text size. Blended
+     30% toward Warm Off-White it clears at 4.72:1 while staying clearly
+     quieter than the status line above it. */
+  color: color-mix(in srgb, var(--color-soft-sand) 70%, var(--color-warm-off-white));
+}
+
+.contact__facts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Separator before every item except the first. Hidden when the list
+   wraps onto its own lines would be ideal, but a leading dot on a
+   wrapped row is a small cost for not hard-coding separators. */
+.contact__facts li + li::before {
+  content: "";
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+/* The status line reads brighter than the two supporting facts beside
+   it — it's the one a visitor is actually scanning for. */
+.contact__status {
+  color: var(--color-warm-off-white);
+}
+
+.contact__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex-shrink: 0;
+  /* Soft halo, so the dot reads as a live indicator rather than a
+     bullet point. Static — a pulsing dot in a section this quiet would
+     pull attention away from the CTAs right below it. */
+  box-shadow: 0 0 0 3px rgba(252, 163, 17, 0.2);
 }
 
 .contact__actions {
@@ -877,6 +1475,22 @@ section {
   flex-wrap: wrap;
   gap: var(--space-md);
   margin-top: var(--space-lg);
+}
+
+/* Plain-text fallback under the buttons. Deliberately quiet — it's
+   insurance for anyone a mailto fails for, not a competing CTA. */
+.contact__direct {
+  margin-top: var(--space-md);
+  margin-bottom: 0;
+  font-size: var(--fs-small);
+  /* Same blend and same reason as .contact__facts above. */
+  color: color-mix(in srgb, var(--color-soft-sand) 70%, var(--color-warm-off-white));
+}
+
+.contact__direct a {
+  color: var(--color-warm-off-white);
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 0.2em;
 }
 
 .site-footer {

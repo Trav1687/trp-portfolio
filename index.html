@@ -174,7 +174,7 @@
           </p>
           <div class="hero__actions">
             <span class="btn__wrap btn__wrap--primary">
-              <a class="btn btn--primary btn--waypoint" href="#work">View My Work</a>
+              <a class="btn btn--primary btn--waypoint" href="#featured-project">View My Work</a>
               <svg class="btn__ring" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path></path></svg>
             </span>
             <span class="btn__wrap btn__wrap--secondary">
@@ -217,15 +217,37 @@
           absolute array index rather than DOM position.
         -->
         <div class="peaks__intro-group">
+          <!--
+            Eyebrow re-enabled (it had been commented out) and reworded,
+            matching the same pattern now used in What I Do: the H2 stays
+            the brand-voice line ("Selected Peaks"), which is memorable
+            but means nothing to a search engine, and the eyebrow above
+            it carries the plain terms someone would actually search.
+            That way the section is legible to both without flattening
+            the brand language out of the heading itself.
+          -->
           <div class="peaks__intro reveal">
-            <!-- <span class="eyebrow">Selected Work</span> -->
+            <span class="eyebrow">Web &amp; App Development Portfolio</span>
             <h2>Selected Peaks</h2>
             <p>
-              A few projects that show how I think, build, organize, and solve different kinds
-              of digital problems.
+              A selection of client websites, web apps, automation, and brand work. Each one
+              shows how a real problem gets scoped, designed, and built.
             </p>
           </div>
-          <div data-first-project></div>
+          <!--
+            id is the hero's "View My Work" target. It sits on this static
+            wrapper rather than on the project card inside it, because the
+            card is rendered by JS — anchoring to the card would mean the
+            link silently resolves to nothing if the script hasn't run,
+            whereas this element is always in the document.
+
+            Pointing the CTA here rather than at #work is deliberate: #work
+            lands on the "Selected Peaks" heading, which the visitor then
+            has to scroll past. This lands them directly on Mountainside
+            Millwork — the one real client project — so the first thing
+            they see after clicking is actual proof.
+          -->
+          <div id="featured-project" data-first-project></div>
         </div>
 
         <div class="peaks__track" data-projects-list>
@@ -237,14 +259,25 @@
     <!-- ============================= What I Do ============================= -->
     <section id="what-i-do">
       <div class="container">
+        <!--
+          Eyebrow added here for two reasons. Visually, it matches the
+          hero's own eyebrow/heading pairing so this section reads as
+          part of the same system. For SEO, it's a natural place for the
+          plain-language service terms someone would actually search
+          ("web design", "front-end development") that the H2 itself
+          deliberately doesn't use — the H2 stays the approved,
+          human-sounding "What I Bring to a Project" rather than being
+          rewritten into a keyword string, which would read as generic
+          and work against the brand's own voice.
+        -->
         <div class="section-heading reveal">
-          <span class="eyebrow">What I Do</span>
-          <h2>Capabilities</h2>
-          <p>I work across the early thinking, design, build, and improvement stages of digital projects.</p>
+          <span class="eyebrow">Web Design &amp; Front-End Development</span>
+          <h2>What I Bring to a Project</h2>
+          <p>From the first idea through launch and beyond: planning, design, front-end development, and the ongoing improvements that keep a site working hard after it goes live.</p>
         </div>
 
-        <div class="capability-grid" data-capabilities-grid>
-          <!-- Capability cards are rendered from js/data.js -->
+        <div class="capability-bento" data-capabilities-grid>
+          <!-- Capability panels are rendered from js/data.js -->
         </div>
       </div>
     </section>
@@ -252,9 +285,19 @@
     <!-- ============================= Process ============================= -->
     <section id="process">
       <div class="container">
+        <!--
+          Eyebrow + intro added to match Selected Peaks and What I Do,
+          which both now use the same pattern: the H2 keeps the
+          brand-voice line, the eyebrow above it carries the plain terms
+          someone would actually search, and a short intro sets up what
+          follows. This section had neither, which made it the one place
+          on the page where a heading sat directly on top of its content
+          with no lead-in.
+        -->
         <div class="section-heading reveal">
-          <span class="eyebrow">Process</span>
+          <span class="eyebrow">Web Design &amp; Development Process</span>
           <h2>How a Project Moves Forward</h2>
+          <p>Six steps from the first conversation to a site that keeps getting better. Clear checkpoints, honest timelines, and no surprises at the end.</p>
         </div>
 
         <div class="process-timeline" data-process-timeline>
@@ -266,9 +309,29 @@
     <!-- ============================= Tools and Skills ============================= -->
     <section id="tools-and-skills">
       <div class="container">
+        <!-- Eyebrow + intro added to match the pattern now shared by
+             Selected Peaks, What I Do, and Process. -->
         <div class="section-heading reveal">
-          <span class="eyebrow">Tools &amp; Skills</span>
+          <span class="eyebrow">Tools, Languages &amp; Skills</span>
           <h2>What I Work With</h2>
+          <p>Every skill here is tied to the projects it was actually used on. Pick a project to see what went into it.</p>
+        </div>
+
+        <!--
+          Project legend. Selecting one dims the skills it didn't involve,
+          so this section reads as evidence rather than as a list of
+          everything I've ever touched — a standalone skills list gives a
+          visitor no way to judge it.
+
+          Rendered by renderSkillsLegend() (js/main.js) from the same
+          projects array that drives Selected Peaks, so the two can never
+          drift apart. Progressive enhancement: with no JS this container
+          stays empty and the skill groups below render as a plain,
+          complete, perfectly readable list — the filter is an addition,
+          never a prerequisite for reading the content.
+        -->
+        <div class="skills-legend" data-skills-legend>
+          <!-- Project filter buttons are rendered from js/data.js -->
         </div>
 
         <div class="skills-grid" data-skills-grid>
@@ -279,53 +342,325 @@
 
     <!-- ============================= About ============================= -->
     <section id="about">
-      <div class="container about__inner reveal">
-        <span class="eyebrow">About</span>
-        <h2>Travis Peakman</h2>
-        <p>
-          I'm Travis Peakman, a VanArts Web Development and Digital Design student focused on
-          building useful digital work with a mix of design thinking, front-end development,
-          and practical problem-solving.
-        </p>
-        <p>
-          My strength is being able to connect different parts of a project. I can look at the
-          business goal, the user experience, the design direction, and the build requirements,
-          then help turn that into something clear and usable.
-        </p>
-        <p>
-          This portfolio is built around that range: client websites, web apps, automation
-          systems, product planning, and digital brand/content work.
-        </p>
+      <div class="container">
+        <div class="about__grid reveal">
+          <!--
+            Headshot, converted from the supplied HeadShot_V2.png (1024x1536,
+            2.3MB) to WebP at 93KB — a 96% saving on what would otherwise be
+            the second-heaviest asset on the page.
 
-        <!--
-          TODO: Resume file not uploaded yet. Once ready, replace this
-          disabled button with a real link to the Front-End Developer resume
-          PDF (this is the primary resume for V1 — do not link both resumes).
-        -->
-        <button type="button" class="btn btn--secondary btn--disabled" disabled>
-          View Resume
-        </button>
-        <span class="placeholder-note">
-          Resume (Front-End Developer resume) is not uploaded yet — button is a placeholder until it's ready.
-        </span>
+            The source is 2:3 and this frames to 4:5, so it was cropped to
+            ratio BEFORE resizing rather than left to object-fit. The centre
+            crop happens to place the eye line at ~33% from the top, which is
+            conventional headshot framing, so centre was genuinely the right
+            choice here rather than just the default. The original PNG is kept
+            alongside it in the same folder as the source file.
+
+            width/height are the real file dimensions (900x1125), matching the
+            convention used for the project screenshots in js/data.js —
+            mismatched values are what make an image look subtly stretched
+            before it finishes loading.
+
+            onerror hides the whole figure if the file ever goes missing: a
+            broken-image icon here would look worse than no photo, and the
+            layout collapses cleanly to one column instead.
+          -->
+          <div class="about__aside">
+            <figure class="about__photo" data-about-photo>
+              <img
+                src="assets/images/about/travis-peakman.webp"
+                alt="Travis Peakman"
+                width="900"
+                height="1125"
+                loading="lazy"
+                onerror="this.closest('[data-about-photo]').hidden = true;"
+              />
+            </figure>
+
+            <!--
+              Quick facts, filling what was a large empty gap under the
+              photo and giving the section the scannable credential block
+              the research kept citing (name, title, focus, education).
+              A <dl> rather than a styled list — these are genuinely
+              term/definition pairs, and the markup should say so.
+
+              Every value here is already stated elsewhere on the site
+              (the hero role line, the About copy, the Contact section),
+              so nothing is invented.
+
+              >> TRAVIS: two more rows worth adding once you confirm them,
+              >> deliberately left out rather than guessed:
+              >>   <div><dt>Based in</dt><dd>Your city, BC</dd></div>
+              >>   <div><dt>Status</dt><dd>Open to work / freelance</dd></div>
+              >> The second one especially — "is he available?" is the
+              >> question most visitors to a portfolio are actually asking.
+            -->
+            <dl class="about__facts">
+              <div>
+                <dt>Focus</dt>
+                <dd>Front-end development &amp; digital design</dd>
+              </div>
+              <div>
+                <dt>Studying</dt>
+                <dd>Web Development &amp; Digital Design, VanArts</dd>
+              </div>
+              <div>
+                <dt>Works across</dt>
+                <dd>Planning, design, build, launch</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div class="about__body">
+            <span class="eyebrow">About</span>
+            <h2>Travis Peakman</h2>
+
+            <!--
+              Copy reordered to lead with the differentiator rather than
+              the credential. The old opening line was "a VanArts Web
+              Development and Digital Design student focused on..." —
+              which put the least distinctive fact first. What actually
+              sets the work apart is the range: being able to hold the
+              business goal, the user experience, the design direction,
+              and the build requirements at once. That's now the lead, and
+              the VanArts credential follows it as supporting detail
+              rather than being the headline.
+            -->
+            <p class="about__lead">
+              My strength is connecting the parts of a project that usually get handled
+              separately. I can look at the business goal, the user experience, the design
+              direction, and the build requirements together, then turn that into something
+              clear and usable.
+            </p>
+            <p>
+              I'm a Web Development and Digital Design student at VanArts, and I work across
+              the whole span of a project rather than one slice of it: client websites, web
+              apps, automation systems, product planning, and digital brand and content work.
+            </p>
+            <p>
+              That range is what this portfolio is built around. Every project here involved
+              figuring out what the real problem was before building anything.
+            </p>
+
+            <!--
+              TODO (Travis): consider one short, genuinely personal line
+              here — what you do away from the screen, what got you into
+              this. Every source in the research flagged personality as
+              what separates a memorable About from a résumé summary, and
+              this section is currently all-professional. Deliberately left
+              blank rather than invented, since it has to be true and it
+              has to be yours.
+            -->
+
+            <div class="about__actions">
+              <!--
+                TODO: Resume file not uploaded yet. Once ready, replace this
+                disabled button with a real link to the Front-End Developer resume
+                PDF (this is the primary resume for V1 — do not link both resumes).
+
+                Now the chamfered waypoint shape used by every other CTA on
+                the site — this was the last rounded pill button left, and
+                it read as a stray component from an earlier design pass.
+                Wrapped in .btn__wrap so setupWaypointRings() (js/main.js)
+                draws its outline ring, same as the hero's secondary CTA.
+              -->
+              <span class="btn__wrap btn__wrap--secondary">
+                <button type="button" class="btn btn--secondary btn--waypoint btn--disabled" disabled>
+                  View Resume
+                </button>
+                <svg class="btn__ring" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path></path></svg>
+              </span>
+              <span class="placeholder-note">
+                Resume (Front-End Developer resume) is not uploaded yet — button is a placeholder until it's ready.
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- ============================= Contact / Footer ============================= -->
+    <!--
+      Kept as a direct email link rather than a form, per the V1 launch
+      decision. Worth recording the trade-off, since it was made with the
+      research in front of us: A/B tests on portfolios put a real form at
+      2-4x the conversion of a mailto, because a mailto opens an
+      unpredictable mail client and loses anyone on webmail entirely. The
+      three additions below are what the same research says to do when
+      you're not running a form — set expectations, state availability,
+      and give a location — so the section still does its job.
+    -->
     <section id="contact" class="contact">
       <div class="container contact__inner reveal">
-        <span class="eyebrow">Start Here</span>
+        <!--
+          "Start Here" is the trailhead at the end of the route: the hero
+          opens with a figure at the bottom of a mountain, and this is
+          where the next climb begins. The eyebrow carries the plain
+          searchable terms, same pattern as every other section.
+        -->
+        <span class="eyebrow">Start a Project</span>
         <h2>Start Here</h2>
         <p>
-          Have a project, opportunity, or rough digital idea that needs a clearer path? Reach
-          out and let's talk through it.
+          Have a project, a role, or a rough idea that needs a clearer path? Tell me what
+          you're trying to do and I'll come back with a straight answer on whether I can help.
         </p>
 
+        <!--
+          Status, response time and location. Every source in the research
+          flagged these as what actually gets someone to make contact:
+          "is he available", "will he reply", "is he in my time zone" are
+          the questions a visitor is silently asking, and a portfolio that
+          doesn't answer them leaves that to guesswork.
+
+          The status dot is decorative and marked aria-hidden — the text
+          beside it already says the same thing, so a screen reader would
+          otherwise announce a meaningless bullet.
+
+          >> TRAVIS: keep the status line honest. If that changes, this is
+          >> the one line on the site that will read as stale fastest.
+        -->
+        <ul class="contact__facts">
+          <li class="contact__status">
+            <span class="contact__status-dot" aria-hidden="true"></span>
+            Open to roles and freelance work
+          </li>
+          <li>Usually replies within a day</li>
+          <li>Lower Mainland, BC &middot; Pacific Time</li>
+        </ul>
+
+        <!--
+          ============================ CONTACT FORM ============================
+
+          Wired to Formspree (form ID xlgqkeyo). Submissions arrive at
+          whichever address the Formspree account is set to notify.
+
+          Formspree's own "Vanilla JS (Ajax)" guide offers an SDK
+          (@formspree/ajax, loaded from unpkg) that does roughly what
+          setupContactForm() in js/main.js already does by hand. Not used
+          here, deliberately: this site currently has ZERO external
+          JavaScript dependencies, and the TRP build standards call for
+          avoiding unnecessary libraries. Adding a CDN script — a
+          third-party request on every page load, an extra thing to
+          break, and a version to keep an eye on — to replace ~60 lines
+          of working vanilla fetch isn't a trade worth making.
+
+          The one real feature the SDK adds is per-field error messages
+          returned by the server. Worth revisiting if server-side
+          validation errors ever become a genuine problem; browser-native
+          validation catches everything this form can get wrong today.
+
+          Four fields, single column, per the research: 3-5 fields is the
+          conversion sweet spot and single-column beats multi-column,
+          mostly because it's what already works on mobile.
+
+          Progressive enhancement. This is a real <form> with a real
+          action and method, so with JavaScript off it still submits and
+          Formspree shows its own confirmation page. js/main.js upgrades
+          it to submit in the background and report status inline, which
+          keeps the person on the page.
+
+          Native validation attributes (required, type="email") rather
+          than custom JS checks — browsers already do this accessibly,
+          announce it to screen readers, and localise the messages.
+        -->
+        <form
+          class="contact-form"
+          action="https://formspree.io/f/xlgqkeyo"
+          method="POST"
+          data-contact-form
+        >
+          <!--
+            Sets the notification email's subject line. Without it every
+            message arrives under Formspree's default ("New form
+            submission on ..."), which tells you nothing once more than
+            one is sitting in an inbox.
+
+            The field is `subject`, NOT `_subject` — the underscore-
+            prefixed name is Formspree's older convention and is what a
+            first attempt here used; it was silently ignored and the
+            default subject came through instead (confirmed on a live
+            test submission).
+
+            {{ }} interpolates other fields from the same submission, so
+            the subject carries the topic and sender: "TRP portfolio —
+            A project or website from Travis Peakman". That's the whole
+            point of the topic dropdown — it's only useful for triage if
+            it's visible before the message is opened.
+          -->
+          <input type="hidden" name="subject" value="TRP portfolio — {{ topic }} from {{ name }}" />
+          <div class="contact-form__field">
+            <label for="contact-name">Name</label>
+            <input type="text" id="contact-name" name="name" autocomplete="name" required />
+          </div>
+
+          <div class="contact-form__field">
+            <label for="contact-email">Email</label>
+            <input type="email" id="contact-email" name="email" autocomplete="email" required />
+          </div>
+
+          <!--
+            The qualifying field. Research flagged a subject dropdown as
+            the one extra field worth its cost: it tells you what kind of
+            request it is before you open it, and it's one tap rather
+            than something else to type.
+          -->
+          <div class="contact-form__field">
+            <label for="contact-topic">What's this about?</label>
+            <select id="contact-topic" name="topic">
+              <option value="A project or website">A project or website</option>
+              <option value="A job or contract role">A job or contract role</option>
+              <option value="A question">A question</option>
+              <option value="Something else">Something else</option>
+            </select>
+          </div>
+
+          <div class="contact-form__field">
+            <label for="contact-message">Message</label>
+            <textarea id="contact-message" name="message" rows="5" required></textarea>
+          </div>
+
+          <!--
+            Honeypot. Formspree discards any submission with _gotcha
+            filled in — bots complete every field they find, people never
+            see this one. Hidden with a class rather than type="hidden",
+            since bots skip genuinely hidden inputs. tabindex="-1" and
+            aria-hidden keep it out of the way of keyboard and screen
+            reader users.
+          -->
+          <div class="contact-form__gotcha" aria-hidden="true">
+            <label for="contact-gotcha">Leave this field empty</label>
+            <input type="text" id="contact-gotcha" name="_gotcha" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <span class="btn__wrap btn__wrap--primary contact-form__submit">
+            <button type="submit" class="btn btn--primary btn--waypoint">Send Message</button>
+            <svg class="btn__ring" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path></path></svg>
+          </span>
+
+          <!--
+            role="status" + aria-live="polite" so success and failure are
+            announced to screen readers without stealing focus. Empty
+            until there's something to say.
+          -->
+          <p class="contact-form__status" role="status" aria-live="polite" data-form-status></p>
+        </form>
+
         <div class="contact__actions">
-          <a class="btn btn--primary" href="mailto:TravisPeakman@outlook.com">Email Me</a>
           <a class="btn btn--on-dark" href="https://github.com/Trav1687" target="_blank" rel="noopener noreferrer">View GitHub</a>
           <a class="btn btn--on-dark" href="https://www.linkedin.com/in/travispeakman" target="_blank" rel="noopener noreferrer">Connect on LinkedIn</a>
         </div>
+
+        <!--
+          The address in plain text as well as behind the button. A mailto
+          is a dead end for anyone on webmail or a locked-down machine —
+          the research was explicit that direct details shouldn't be
+          buried, and this is the fallback that makes the button safe to
+          rely on.
+        -->
+        <p class="contact__direct">
+          Prefer email?
+          <a href="mailto:TravisPeakman@outlook.com">TravisPeakman@outlook.com</a>
+        </p>
       </div>
     </section>
   </main>
@@ -341,7 +676,12 @@
         <a href="#work">Work</a>
         <a href="#what-i-do">What I Do</a>
         <a href="#process">Process</a>
-        <a href="#skills">Skills</a>
+        <!-- #tools-and-skills, not #skills: that section's id is
+             tools-and-skills, and this footer link was the one place
+             still pointing at a non-existent #skills anchor, so it did
+             nothing when clicked. The main and mobile nav were already
+             correct. -->
+        <a href="#tools-and-skills">Skills</a>
         <a href="#about">About</a>
         <a href="privacy.html">Privacy</a>
       </div>
