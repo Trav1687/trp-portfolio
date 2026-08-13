@@ -452,7 +452,11 @@ section {
   position: absolute;
   left: var(--peak-x, 81.6%);
   top: var(--peak-y, 4.4%);
-  width: 4.2%;
+  /* JS sets --peak-size in px from the live image scale (see
+     repositionForCurrentLayout in js/main.js) so the halo stays the same
+     size relative to the marker at every breakpoint. 4.2% is the
+     pre-JS fallback only, and is correct at roughly desktop width. */
+  width: var(--peak-size, 4.2%);
   aspect-ratio: 1;
   transform: translate(-50%, -50%) scale(0.4);
   border-radius: 50%;
@@ -547,25 +551,96 @@ section {
    evenly so a smaller, more cropped scene doesn't compete with the text. */
 @media (max-width: 639px) {
   .hero__scene {
-    background-position: right bottom;
+    /* 82%, not `right`. At `right` the crop starts at source x=847 and the
+       standing figure sits at x=900, so it was clipped hard against the
+       left edge: present, but unreadable as a person.
+
+       The scaled image is 791px wide in a ~390px box, leaving 401px of
+       pan. At 82% the figure lands about 25% across and the summit marker
+       about 81% across, which puts the marker under the hamburger and
+       lets the route read diagonally between the two. Further left and
+       the marker starts running off the right edge; further right and the
+       figure goes back to the frame edge.
+
+       Vertical crop is irrelevant here: `cover` on this box is driven by
+       height, so the full 941px of image height is already visible and
+       `bottom` only matters on taller heroes. */
+    background-position: 82% bottom;
   }
 
   /* ::after duplicates .hero__scene's own background image (see above):
      must match its background-position here too, or the glow sweep would
      be lit up over a different crop than what's actually visible. The
-     peak-marker pulse (::before) is hidden instead of repositioned: at
-     this crop the summit itself is unlikely to still be in view, so
-     nothing sensible to pulse against. */
+     peak-marker pulse (::before) is no longer hidden here. It used to be,
+     on the reasoning that the old `right bottom` crop cut the summit out
+     of frame so there was nothing sensible to pulse against. That crop is
+     gone: at 82% the summit renders about 81% across, near the hamburger,
+     and the pulse is the same element desktop uses.
+
+     Its position comes from setupHeroRouteDraw() in js/main.js, which
+     maps HERO_PEAK_PX (1364, 57 in the source image) through the live
+     background-size/position rather than any fixed CSS percentage, so it
+     lands on the marker at every breakpoint. That mapping reads its
+     mobile values from getHeroBackgroundConfig(), which mirrors the
+     `82% bottom` set above: both were updated together, and both have to
+     stay in step. */
   .hero__scene::after {
-    background-position: right bottom;
+    background-position: 82% bottom;
   }
 
-  .hero__scene::before {
-    display: none;
-  }
+  /* Was a flat rgba(20, 33, 61, 0.85) sheet across the whole hero, which
+     is why the scene read as faint noise on a phone rather than as
+     artwork: the image was rendering correctly and then being covered
+     almost entirely, edge to edge.
 
+     A gradient instead, dense where the copy is and thinning downward:
+
+       0%   0.82  eyebrow
+       14%  0.80  end of the eyebrow zone
+       48%  0.70  headline and supporting line
+       76%  0.48  CTA band, scene coming through
+       100% 0.28  mountains and route clearly visible at the base
+
+     The stops are weighted toward the top rather than spread evenly
+     because the copy block occupies roughly the first two thirds of the
+     hero on a narrow viewport. An even gradient would start lifting the
+     overlay while text is still sitting on it.
+
+     0.80 at the top is set by the Trail Orange eyebrow, not the headline.
+     Measured against the brightest pixel the crop could put behind it
+     (snow on the peak, ~#C8CDD7), off-white headline type still clears
+     9:1 at that density, but orange on navy is a much narrower pairing
+     and drops under the 4.5 threshold below about 0.78. So the eyebrow is
+     what holds the top of this gradient up; everything else has room to
+     spare.
+
+     A first pass ran 0.92 down to 0.34 and read as too flat up top once
+     the base was working: the bottom looked like artwork and the top
+     looked like a dead navy field by comparison.
+
+     0.28 rather than 0 at the bottom: the scene's own lower area is
+     already the busiest part of the image, and a fully uncovered strip
+     under the buttons pulled the eye off them.
+
+     Considered instead: holding the copy back until a route-draw
+     animation finished, then fading it in over the revealed scene. Not
+     done. It delays the first thing a visitor reads on the smallest
+     screen, it costs Largest Contentful Paint, anyone with
+     prefers-reduced-motion set skips it and lands on the un-fixed state
+     anyway, and it would have made the artwork visible for about two
+     seconds rather than permanently. The overlay was the actual problem.
+     The existing route glow sweep still plays; it now sweeps across a
+     scene that can be seen. */
   .hero::after {
-    background: rgba(20, 33, 61, 0.85);
+    background: linear-gradient(
+      to bottom,
+      rgba(20, 33, 61, 0.06) 0%,
+      rgba(20, 33, 61, 0.24) 16%,
+      rgba(20, 33, 61, 0.52) 38%,
+      rgba(20, 33, 61, 0.5) 62%,
+      rgba(20, 33, 61, 0.3) 82%,
+      rgba(20, 33, 61, 0.18) 100%
+    );
   }
 }
 
@@ -1911,4 +1986,75 @@ section {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-md);
+}
+
+/* Topo backgrounds on narrow viewports.
+   ---------------------------------------------------------------------
+   Desktop paints all three topo layers `background-size: 100% 100%`,
+   stretching each SVG to its element's exact box. That is deliberate:
+   forcing all three to full width at matched x-percentages is what lines
+   the river up across the section boundaries, which is the whole reason
+   they were generated as three chained segments. It works because each
+   was generated at roughly its section's desktop proportions
+   (topo-pattern.svg is 0.444, .peaks on a 1400px desktop is 0.438).
+
+   On a phone that collapses. Sections get much taller as cards and steps
+   stack while the viewport narrows, putting .peaks near 0.087, which is
+   20% of the correct width: every contour drawn five times taller than
+   designed, reading as vertical streaking rather than terrain.
+
+   Three fixes were tried and rejected before this one:
+
+     cover              undistorted, but scales to 2.41 against desktop's
+                        1.69, so the map goes sparse.
+     100% auto +        correct density, but the chained segments do not
+     repeat-y           self-tile.
+     reuse peaks        its river leaves and re-enters at the same x
+     for all three      (33.5%), but 11px wide at the top and 30px at the
+                        bottom, so every seam still snapped.
+
+   None of the three segments can tile, because none was drawn to. They
+   are single continuous illustrations that happen to start and end at
+   convenient x positions.
+
+   topo-tile-seamless.svg is purpose-built to repeat. Its elevation field
+   is generated with periodic smoothing and then explicitly closed, so
+   y=H reproduces y=0 exactly: contours, river width, valley walls and
+   all. Stacked copies join with nothing visible at the boundary.
+
+   Its river also obeys the terrain. A first version drew the watercourse
+   on an arbitrary sine centreline and cut a trough along it, which left
+   it visibly crossing high ground wherever the underlying field happened
+   to peak: rivers do not climb ridges. The path is now DERIVED from the
+   field by a minimum-cost descent (the seam-carving recurrence, each row
+   taking the cheapest of the three cells above it), so it threads the low
+   ground on its own, and the trough reinforces a valley that is already
+   there. That is what produces the contour lines running parallel along
+   both banks.
+
+   The contours are also interrupted at the water rather than drawn
+   through it, which is how a real map handles a watercourse. The field is
+   masked inside the river corridor so no contour is generated there at
+   all: with a 50% translucent band the lines were otherwise visible
+   underneath, reading as topography crossing the river.
+
+   Generated by topo-tile-seamless.gen.py alongside it; regenerate from
+   that script rather than editing the SVG by hand, since both the wrap
+   and the river's route depend on how the field is built.
+
+   It is also much lighter. Mobile previously fetched all three segments
+   at 835 KB combined; this is 252 KB, and it is the only pattern any
+   section requests below 640px.
+
+   Desktop is untouched: three chained segments at 100% 100%, exactly as
+   generated. */
+@media (max-width: 639px) {
+  .peaks::before,
+  #process::before,
+  #about::before {
+    background-image: url("../assets/patterns/topo-tile-seamless.svg?v=1");
+    background-size: 100% auto;
+    background-repeat: repeat-y;
+    background-position: top center;
+  }
 }

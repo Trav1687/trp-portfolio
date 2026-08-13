@@ -2692,3 +2692,44 @@
     transition: none;
   }
 }
+
+/* Tools & Skills on phones: same content, less vertical run.
+   ---------------------------------------------------------------------
+   This section was measurably the tallest on mobile relative to what it
+   contains. Three things drove it, and only the padding was actually
+   doing any work:
+
+   .skill-group carries padding-block: var(--space-md), which is 24px top
+   AND bottom on each of five groups: 240px of pure padding before a
+   single word of content. That reads as deliberate breathing room on
+   desktop, where the groups sit two per row and the section is wide. On a
+   phone they stack into one column, so the same value repeats five times
+   down the page and the ruled dividers already provide the separation the
+   padding was there to create.
+
+   The legend's five project buttons wrap to four rows at 0.95rem with
+   1rem side padding. Tightened, not shrunk: the padding comes in but the
+   font size does not, because these are the only interactive controls in
+   the section and the only way to use the filter on touch at all. At
+   0.45rem block padding they still measure about 29px tall, clear of the
+   24px WCAG 2.5.8 minimum. Two of the five names now pair up per row.
+
+   Deliberately NOT touched: --space-section. Every section on the site
+   shares that value per an explicit request for uniform section padding,
+   so trimming it here to save 32px would break the rhythm everywhere
+   else to fix one section. */
+@media (max-width: 639px) {
+  .skill-group {
+    padding-block: 0.9rem;
+    gap: 0.45rem;
+  }
+
+  .skills-legend {
+    gap: 0.4rem;
+  }
+
+  .skills-legend__item {
+    padding: 0.45rem 0.7rem;
+    gap: 0.4rem;
+  }
+}

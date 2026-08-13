@@ -923,6 +923,11 @@ const HERO_IMAGE_SIZE = { width: 1672, height: 941 };
 // toward the rock face instead of sitting on the marker).
 const HERO_FEET_PX = { x: 848, y: 864 };
 const HERO_PEAK_PX = { x: 1364, y: 57 };
+// Diameter of the peak-marker pulse, expressed in source-image pixels so
+// it scales with the background crop instead of with the box. 70 matches
+// what the old `width: 4.2%` produced at desktop width, which is the size
+// the effect was originally tuned at.
+const PEAK_HALO_IMAGE_PX = 70;
 
 /*
   Mirrors the .hero__scene background-size/background-position rules in
@@ -940,7 +945,12 @@ const HERO_PEAK_PX = { x: 1364, y: 57 };
 function getHeroBackgroundConfig() {
   const vw = window.innerWidth;
   if (vw <= 639) {
-    return { size: "cover", posX: 1, posY: 1 }; // right bottom
+    // 0.82, mirroring `background-position: 82% bottom` on .hero__scene in
+    // css/layout.css. Was 1 (right) until the mobile crop was shifted to
+    // bring the standing figure into frame; leaving this at 1 would have
+    // put the peak-marker pulse ~74px right of where the summit actually
+    // renders on a 390px viewport.
+    return { size: "cover", posX: 0.82, posY: 1 }; // 82% bottom
   }
   if (vw >= 1600) {
     return { size: "auto-height", posX: 1, posY: 0.5 }; // auto 100%, right center
@@ -987,6 +997,7 @@ function mapImagePointToBox(el, imgX, imgY) {
   return {
     x: offsetX + imgX * scaleX,
     y: offsetY + imgY * scaleY,
+    scale: scaleX,
     boxW,
     boxH,
   };
@@ -1024,6 +1035,20 @@ function setupHeroRouteDraw() {
     if (peak) {
       scene.style.setProperty("--peak-x", `${peak.x}px`);
       scene.style.setProperty("--peak-y", `${peak.y}px`);
+      // Size the halo in IMAGE pixels, not as a percentage of the box.
+      //
+      // The CSS fallback is width: 4.2% of .hero__scene, which is only
+      // correct at one viewport width. The marker underneath is a fixed
+      // size in the source image and scales with the background, so a
+      // box-relative halo drifts out of proportion as the crop scale
+      // changes: measured at 70 image-px across on a 1400px desktop but
+      // only 35 on a 390px phone, i.e. half the relative size, which is
+      // why the mobile pulse read as a different element rather than the
+      // same one.
+      //
+      // PEAK_HALO_IMAGE_PX is that desktop value, so every breakpoint now
+      // renders the halo at the same size relative to the marker it sits on.
+      scene.style.setProperty("--peak-size", `${PEAK_HALO_IMAGE_PX * peak.scale}px`);
     }
     if (revealComplete && peak) {
       scene.style.setProperty("--sweep-r", `${Math.hypot(peak.boxW, peak.boxH)}px`);
