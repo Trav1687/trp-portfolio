@@ -47,6 +47,14 @@
   --space-xl: 4rem;
 
   /* Layout */
+  /* The sticky header's real rendered height: its tallest child (the
+     Contact button, ~41px) plus 0.75rem padding top and bottom plus its
+     1px bottom border. Declared here because scroll-padding-top in
+     global.css has to match it: an anchor offset that disagrees with
+     the header lands section headings underneath it.
+
+     If .site-header__inner's padding changes, this changes with it. */
+  --header-height: 66px;
   --container-width: 1200px;
   --container-padding: clamp(1.25rem, 5vw, 3rem);
   --radius-card: 1.25rem;

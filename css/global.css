@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Global base styles — reset, typography, links, focus states.
+   Global base styles: reset, typography, links, focus states.
    ========================================================================== */
 
 *,
@@ -10,17 +10,31 @@
 
 html {
   scroll-behavior: smooth;
+  /* One anchor offset for the whole document, instead of a
+     scroll-margin-top on each target.
+
+     Every in-page link previously relied on individual
+     scroll-margin-top: 5rem declarations spread across three files:
+     seven of them. They worked, but each new anchor had to remember to
+     opt in (#featured-project needed its own rule added for exactly that
+     reason), and 5rem was a hand-tuned guess rather than the header's
+     real height. scroll-padding-top on the scroll container applies to
+     every anchor automatically, including ones added later.
+
+     +0.5rem over --header-height so a heading clears the header rather
+     than sitting flush against its underside. */
+  scroll-padding-top: calc(var(--header-height) + 0.5rem);
   /* scroll-snap-type: y proximity used to live here, making every
      top-level section and project card a snap point (components.css,
      layout.css). Turned off per direct request ("take out the
      scrolling lock") while the rest of the content/design gets
-     cleaned up first — snapping is something to revisit deliberately
+     cleaned up first, snapping is something to revisit deliberately
      later, not mid-cleanup. Removing it HERE (the one property that
      actually turns snapping on for the whole page) is enough on its
      own: every individual scroll-snap-align/scroll-snap-stop/
      scroll-margin-top declaration elsewhere is inert without a
      scroll-snap-type ancestor, so they're left in place rather than
-     stripped out piecemeal across three files — turning snapping back
+     stripped out piecemeal across three files, turning snapping back
      on later, if that's the direction, is just restoring this one
      line. */
 }
@@ -84,6 +98,27 @@ button {
   margin-bottom: var(--space-sm);
 }
 
+/* Available to screen readers, invisible on screen. Used for context a
+   sighted user gets from visual cues but a screen-reader user doesn't:
+   currently the "(opens in a new tab)" note on external project links.
+
+   `clip-path: inset(50%)` rather than the older `clip: rect(0 0 0 0)`,
+   and 1px rather than 0 dimensions: a zero-size element is dropped from
+   the accessibility tree by some screen readers, which defeats the whole
+   point. `white-space: nowrap` stops the text wrapping inside that 1px
+   box and being reported as one letter per line. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Visible focus states for keyboard users */
 a:focus-visible,
 button:focus-visible,
@@ -92,13 +127,13 @@ button:focus-visible,
   outline-offset: 3px;
 }
 
-/* Skip link for keyboard/screen reader users — required for WCAG 2.4.1
+/* Skip link for keyboard/screen reader users, required for WCAG 2.4.1
    (Bypass Blocks) and lets keyboard/screen-reader visitors jump past
    the nav straight to the main content instead of tabbing through it
    on every page load. Meant to stay fully invisible until it receives
    keyboard focus (first Tab press), then appear briefly at the top.
 
-   Hidden via transform, not top: -3rem as a first version did — a
+   Hidden via transform, not top: -3rem as a first version did: a
    fixed negative top offset has to guess the link's own rendered
    height (padding + line-height) exactly right, and here it was just
    shy of enough, leaving a visible sliver at rest even without focus
@@ -113,7 +148,7 @@ button:focus-visible,
    testing).
 
    left: 50% + translateX(-50%) centers it instead of anchoring to the
-   left edge — a first version sat at left: 1rem, directly on top of
+   left edge: a first version sat at left: 1rem, directly on top of
    the TRP logo (confirmed in testing, screenshot showed the logo
    peeking out from behind it). Centered, it lands in the open space
    between the logo and the nav on desktop instead of colliding with
@@ -141,7 +176,7 @@ button:focus-visible,
   html {
     scroll-behavior: auto;
     /* Scroll-snap moves the scroll position without the user directly
-       controlling it, same category of concern as any other motion —
+       controlling it, same category of concern as any other motion:
        off for reduced-motion users, same as everything else here. */
     scroll-snap-type: none;
   }
@@ -162,7 +197,7 @@ button:focus-visible,
   is available does it add `.reveal--pending` (via setupScrollReveal), which
   is what actually hides the element before animating it in. If a script
   fails to load, throws an error, or JS is disabled entirely, every section
-  still renders normally — the site just loses the entrance animation.
+  still renders normally: the site just loses the entrance animation.
 */
 .reveal {
   opacity: 1;

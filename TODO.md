@@ -1,4 +1,4 @@
-# TRP Portfolio — Launch TODO
+# TRP Portfolio: Launch TODO
 
 Version 1 is built and functional. These items are intentionally left as
 placeholders and should be resolved before the site goes live.
@@ -17,7 +17,7 @@ placeholders and should be resolved before the site goes live.
 - [ ] Upload the Front-End Developer resume PDF and link it from the
       "View Resume" button in the About section (`index.html`). Remove the
       `disabled` attribute and the placeholder note once it's live.
-- [ ] Do not link the Designer resume alongside it for V1 — only one resume
+- [ ] Do not link the Designer resume alongside it for V1: only one resume
       link in the main contact/about area, per the approved decision.
 
 ## Selected Peaks project links
@@ -25,7 +25,7 @@ placeholders and should be resolved before the site goes live.
 - [ ] Once case study pages exist, replace the disabled "View Project Notes"
       buttons in `js/main.js` / `js/data.js` with real links.
 - [ ] Add live URLs and repo links in `js/data.js` only when they're
-      confirmed — do not invent placeholder URLs.
+      confirmed: do not invent placeholder URLs.
 
 ## Open Graph image
 
@@ -43,7 +43,7 @@ placeholders and should be resolved before the site goes live.
 - [ ] `privacy.html` is intentionally `noindex` and left out of
       `sitemap.xml`. If that changes, update both files together.
 
-## Later features (per launch decisions — do not add yet)
+## Later features (per launch decisions: do not add yet)
 
 - [ ] Contact form (currently email link only)
 - [ ] Analytics

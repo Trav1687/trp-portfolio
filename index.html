@@ -4,10 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Travis Peakman | Front-End Developer &amp; Digital Problem-Solver</title>
+  <!--
+    Location is in the title and description on purpose. Both previously
+    said only "Front-End Developer", which meant nothing on the page
+    outside the Contact section connected this site to a place, and
+    location keywords in the title tag are the main lever for ranking on
+    "web designer near me" style searches.
+
+    "Lower Mainland, BC" rather than a single city: it covers Vancouver,
+    Surrey, Burnaby, Langley and the rest as one term, which is how
+    clients in the region actually search, and it doesn't publish a more
+    specific location than intended.
+
+    Both are cut to fit what search results actually display. A first
+    pass ran to 70 and 226 rendered characters against limits of roughly
+    60 and 155: the tail of each was simply being truncated away.
+
+    "Web Designer" is dropped from the title and carried in the
+    description instead: with only ~60 characters, name, primary role and
+    location earn their place ahead of a second job title.
+  -->
+  <title>Travis Peakman | Front-End Developer, Lower Mainland BC</title>
   <meta
     name="description"
-    content="Portfolio of Travis Peakman, a design-minded front-end developer who turns unclear ideas into useful websites, apps, digital tools, and practical online experiences."
+    content="Front-end developer and web designer in the Lower Mainland, BC. Responsive websites, web apps and digital tools. Open to freelance projects and roles."
   />
 
   <!-- TODO (before launch): replace PLACEHOLDER-DOMAIN.com with the final domain everywhere it appears in this file (canonical, Open Graph, Twitter, JSON-LD). -->
@@ -15,10 +35,10 @@
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Travis Peakman | TRP Portfolio" />
+  <meta property="og:title" content="Travis Peakman | Front-End Developer &amp; Web Designer, Lower Mainland BC" />
   <meta
     property="og:description"
-    content="Design-minded front-end developer and practical digital problem-solver creating websites, apps, tools, and digital experiences."
+    content="Front-end developer and digital designer in the Lower Mainland, BC. Responsive websites, web apps and digital tools. Available for freelance projects and roles."
   />
   <meta property="og:url" content="https://PLACEHOLDER-DOMAIN.com/" />
   <!--
@@ -26,13 +46,15 @@
     Replace with a final, cleanly composed 1200x630 image before launch.
   -->
   <meta property="og:image" content="https://PLACEHOLDER-DOMAIN.com/assets/images/trp-og-image.png" />
+  <meta property="og:image:alt" content="TRP: Travis Peakman, front-end developer and web designer" />
+  <meta property="og:locale" content="en_CA" />
 
   <!-- Twitter / social preview -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Travis Peakman | TRP Portfolio" />
+  <meta name="twitter:title" content="Travis Peakman | Front-End Developer &amp; Web Designer, Lower Mainland BC" />
   <meta
     name="twitter:description"
-    content="Design-minded front-end developer and practical digital problem-solver creating websites, apps, tools, and digital experiences."
+    content="Front-end developer and digital designer in the Lower Mainland, BC. Responsive websites, web apps and digital tools. Available for freelance projects and roles."
   />
   <meta name="twitter:image" content="https://PLACEHOLDER-DOMAIN.com/assets/images/trp-og-image.png" />
 
@@ -47,7 +69,26 @@
   <link rel="stylesheet" href="css/layout.css" />
   <link rel="stylesheet" href="css/components.css" />
 
-  <!-- Structured data: Person. TODO (before launch): replace PLACEHOLDER-DOMAIN.com below. -->
+  <!--
+    Structured data: Person. TODO (before launch): replace
+    PLACEHOLDER-DOMAIN.com below.
+
+    Now carries address and knowsAbout. address is what ties this profile
+    to a place for search engines, without it the page could have been
+    written from anywhere.
+
+    City, region and country: no street address. A partial address is
+    valid schema, and a portfolio has no reason to publish a house
+    number. addressLocality was added once "Mission, BC" became visible
+    copy in the About section: markup that disagrees with the page it
+    describes is worse than markup that says less, and the city is the
+    part that actually earns local search results. Region alone put
+    Travis somewhere in a province the size of France.
+
+    knowsAbout mirrors the real Tools & Skills section rather than being
+    a keyword dump. Claiming skills here that the page doesn't back up is
+    the kind of thing that gets structured data ignored.
+  -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -55,11 +96,98 @@
     "name": "Travis Peakman",
     "alternateName": "TRP",
     "jobTitle": "Front-End Developer",
-    "description": "Design-minded front-end developer and practical digital problem-solver.",
+    "description": "Design-minded front-end developer and practical digital problem-solver based in the Lower Mainland, British Columbia.",
     "url": "https://PLACEHOLDER-DOMAIN.com/",
     "image": "https://PLACEHOLDER-DOMAIN.com/assets/logos/trp-social-avatar-512.png",
+    "email": "mailto:TravisPeakman@outlook.com",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Mission",
+      "addressRegion": "BC",
+      "addressCountry": "CA"
+    },
+    "knowsAbout": [
+      "Front-end development",
+      "Web design",
+      "Responsive web design",
+      "Angular",
+      "JavaScript",
+      "HTML",
+      "CSS",
+      "UI design",
+      "Web accessibility",
+      "SEO"
+    ],
+    "alumniOf": {
+      "@type": "EducationalOrganization",
+      "name": "VanArts"
+    },
     "sameAs": [
-      "https://github.com/Trav1687",
+      "https://github.com/travispeakman",
+      "https://www.linkedin.com/in/travispeakman"
+    ]
+  }
+  </script>
+
+  <!--
+    Structured data: ProfessionalService. TODO (before launch): replace
+    PLACEHOLDER-DOMAIN.com below.
+
+    This is the block that makes the site eligible for local/service
+    searches: "web designer near me", "front-end developer Vancouver".
+    The Person schema above describes who Travis is; this describes the
+    service being offered and, critically, WHERE. Person alone carries no
+    service area, so nothing previously connected this site to a place a
+    client could search from.
+
+    areaServed is the Lower Mainland's actual cities rather than one
+    blanket region, since that's what people type. serviceType mirrors
+    the What I Do section.
+
+    >> TRAVIS: no priceRange, no aggregateRating, no review markup here.
+    >> Those are the fields that produce star ratings in search results,
+    >> and inventing them is both against the project's own no-fake-claims
+    >> rule and a documented way to get structured data penalised. Once
+    >> you have a real testimonial from Mountainside Millwork, that can be
+    >> added here as genuine Review markup.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "TRP: Travis Peakman",
+    "description": "Front-end development and digital design: responsive websites, web apps, and digital tools for businesses in the Lower Mainland and beyond.",
+    "url": "https://PLACEHOLDER-DOMAIN.com/",
+    "image": "https://PLACEHOLDER-DOMAIN.com/assets/logos/trp-social-avatar-512.png",
+    "email": "mailto:TravisPeakman@outlook.com",
+    "founder": {
+      "@type": "Person",
+      "name": "Travis Peakman"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Mission",
+      "addressRegion": "BC",
+      "addressCountry": "CA"
+    },
+    "areaServed": [
+      { "@type": "Place", "name": "Lower Mainland, British Columbia" },
+      { "@type": "City", "name": "Vancouver" },
+      { "@type": "City", "name": "Surrey" },
+      { "@type": "City", "name": "Burnaby" },
+      { "@type": "City", "name": "Langley" },
+      { "@type": "City", "name": "Abbotsford" },
+      { "@type": "City", "name": "Mission" }
+    ],
+    "serviceType": [
+      "Web design",
+      "Front-end development",
+      "Responsive website development",
+      "Web application development",
+      "Website maintenance and SEO"
+    ],
+    "sameAs": [
+      "https://github.com/travispeakman",
       "https://www.linkedin.com/in/travispeakman"
     ]
   }
@@ -81,7 +209,7 @@
   <!-- ============================= Header / Navigation ============================= -->
   <header class="site-header">
     <div class="container site-header__inner">
-      <a class="site-header__logo" href="#top" aria-label="TRP — Travis Peakman, back to top">
+      <a class="site-header__logo" href="#top" aria-label="TRP: Travis Peakman, back to top">
         <img src="assets/logos/trp-logo-white.svg" alt="TRP" width="150" height="37" />
       </a>
 
@@ -101,7 +229,7 @@
         </ul>
         <!--
           Route-progress track: a dashed line under the plain section
-          links (Work through About, NOT the Contact button — see
+          links (Work through About, NOT the Contact button, see
           setupNavProgress() in js/main.js) that fills in orange as you
           scroll through the matching section, echoing the dashed route
           line in the hero illustration. Positioned/sized at runtime
@@ -140,16 +268,16 @@
     <section id="top" class="hero">
       <!--
         Full-bleed background scene, purely decorative (aria-hidden).
-        Illustrated raster asset — assets/images/hero/trp-hero-scene-wide.webp,
+        Illustrated raster asset: assets/images/hero/trp-hero-scene-wide.webp,
         applied via CSS background-image (see .hero__scene in
         css/layout.css). Composition: quiet/dark left side behind the text,
         mountain/route/peak/UI-panel scene on the right, small silhouetted
-        figure for human scale (not an outdoor/adventure figure — a scale
+        figure for human scale (not an outdoor/adventure figure: a scale
         reference only).
 
         The load-in glow (route lighting up, then the peak pulsing) is
-        built with CSS pseudo-elements on .hero__scene — see
-        .hero__scene::after and ::before in css/layout.css — rather than a
+        built with CSS pseudo-elements on .hero__scene, see
+        .hero__scene::after and ::before in css/layout.css, rather than a
         separately traced overlay. ::after shows only the route/waypoint
         pixels (assets/images/hero/trp-hero-route-mask.png, a derived
         asset with everything else made transparent) through a circular
@@ -157,7 +285,7 @@
         feet until it's past the peak. ::before is a single small radial
         glow pulsing in near the peak marker once the reveal arrives.
         setupHeroRouteDraw() in js/main.js measures the real rendered hero
-        box at load and drives the circle's growth frame by frame — see
+        box at load and drives the circle's growth frame by frame, see
         that function's comment for why it's done at runtime rather than
         as a plain CSS transition.
       -->
@@ -168,9 +296,61 @@
           <span class="eyebrow">Travis Peakman</span>
           <p class="hero__role">Design-minded front-end developer</p>
           <h1>Turning unclear ideas into digital solutions<span class="hero__period">.</span></h1>
+          <!--
+            Em dash, not a spaced hyphen. This was the only place on the
+            site using " - " as a dash while three other spots use a
+            proper em dash: an inconsistency that's easy to miss in
+            source but visible in the one sentence more people read than
+            any other.
+
+            Copy tightened: "I take messy ideas and digital problems and
+            turn them into..." carried three "and"s and read breathless.
+            The middle one was doing the most damage, joining two clauses
+            that work better as one: "I turn X into Y" instead of "I
+            take X and turn them into Y". "digital problems" became
+            "half-formed problems", which is concrete in a sentence where
+            everything else already is.
+
+            The headline above deliberately keeps "digital solutions"
+            without "useful" from the approved brief line: shorter, and
+            it breaks more evenly across three lines.
+          -->
+          <!--
+            Revised 2026-08-12 after feedback that this line was all
+            process and no outcome. It was true: "messy ideas",
+            "half-formed problems" and "first sketch to shipped product"
+            all describe the journey, and the only result claimed was
+            "actually work", which is a low bar nobody is impressed by.
+
+            The suggested fix was business framing: turning "business
+            aspirations" into "powerful" websites that "return real ROI".
+            Not used, for two reasons.
+
+            There are no metrics behind it. No conversion data, no revenue
+            figures, no traffic numbers from any project. An ROI claim
+            would be the first unbackable statement on a site that has
+            avoided them throughout: no invented testimonials, no fake
+            results, and deliberately no aggregateRating or review markup
+            in the structured data. It is also the exact claim a client
+            asks you to substantiate in a first meeting.
+
+            And the register is wrong for this page. The voice below is
+            plain: "16 years in construction", "nothing gets built twice",
+            "I ask a lot of questions early on". Agency language in the
+            hero would clash with every section under it.
+
+            "People actually use" gets the outcome the feedback was asking
+            for and can be backed on the same page: Mountainside Millwork
+            is live for a working business, and Table Tracker has been in
+            real use by a playgroup for over a month. Both are one click
+            away in Selected Peaks.
+
+            Also drops "and half-formed problems", which said the same
+            thing as "messy ideas" twice. 133 characters down to 115.
+          -->
           <p class="hero__supporting">
-            I take messy ideas and digital problems and turn them into websites, apps,
-            and tools that actually work - from first sketch to shipped product.
+            I turn messy ideas into websites, apps, and tools that people actually use,
+            from first sketch to shipped product.
           </p>
           <div class="hero__actions">
             <span class="btn__wrap btn__wrap--primary">
@@ -189,7 +369,7 @@
     <!-- ============================= Selected Peaks ============================= -->
     <!--
       A pinned/horizontal-scroll version of this section was tried and
-      then explicitly reverted — the user's read, on seeing it working:
+      then explicitly reverted: the user's read, on seeing it working:
       the rest of the page tells one continuous vertical story (the hero
       climbs UP the mountain, the nav tracks progress DOWN the page as a
       route), and a sideways detour through this one section broke that
@@ -197,7 +377,7 @@
       working the upper mountain and down... the horizontal just kinda
       feels off"). Back to a plain vertical stack of large project
       blocks instead, each one full-bleed image + overlay text panel
-      (kept from the pinned version — that part was liked), just laid
+      (kept from the pinned version: that part was liked), just laid
       out as a normal part of the page's own downward scroll rather than
       locked into its own separate horizontal interlude.
     -->
@@ -205,15 +385,15 @@
       <div class="container">
         <!--
           The header and the first (featured) project card are grouped
-          into one scroll-snap target now, per direct request — scrolling
+          into one scroll-snap target now, per direct request, scrolling
           into this section should settle with "Selected Peaks" and
           Mountainside Millwork both in view together, centered as one
           screen, rather than the header being scrolled past on its own
           before the first card gets its own separate centered stop.
           Every card from here on (rendered into .peaks__track below)
           centers individually instead. js/main.js renders projects[0]
-          into [data-first-project] and the rest into [data-projects-list]
-          — see renderProjects() there for why the split happens by
+          into [data-first-project] and the rest into [data-projects-list],
+           see renderProjects() there for why the split happens by
           absolute array index rather than DOM position.
         -->
         <div class="peaks__intro-group">
@@ -230,21 +410,21 @@
             <span class="eyebrow">Web &amp; App Development Portfolio</span>
             <h2>Selected Peaks</h2>
             <p>
-              A selection of client websites, web apps, automation, and brand work. Each one
-              shows how a real problem gets scoped, designed, and built.
+              Client websites, web apps, automation, and brand work. Each one shows how a real
+              problem got scoped, designed, and built.
             </p>
           </div>
           <!--
             id is the hero's "View My Work" target. It sits on this static
             wrapper rather than on the project card inside it, because the
-            card is rendered by JS — anchoring to the card would mean the
+            card is rendered by JS, anchoring to the card would mean the
             link silently resolves to nothing if the script hasn't run,
             whereas this element is always in the document.
 
             Pointing the CTA here rather than at #work is deliberate: #work
             lands on the "Selected Peaks" heading, which the visitor then
             has to scroll past. This lands them directly on Mountainside
-            Millwork — the one real client project — so the first thing
+            Millwork (the one real client project) so the first thing
             they see after clicking is actual proof.
           -->
           <div id="featured-project" data-first-project></div>
@@ -265,7 +445,7 @@
           part of the same system. For SEO, it's a natural place for the
           plain-language service terms someone would actually search
           ("web design", "front-end development") that the H2 itself
-          deliberately doesn't use — the H2 stays the approved,
+          deliberately doesn't use: the H2 stays the approved,
           human-sounding "What I Bring to a Project" rather than being
           rewritten into a keyword string, which would read as generic
           and work against the brand's own voice.
@@ -273,7 +453,13 @@
         <div class="section-heading reveal">
           <span class="eyebrow">Web Design &amp; Front-End Development</span>
           <h2>What I Bring to a Project</h2>
-          <p>From the first idea through launch and beyond: planning, design, front-end development, and the ongoing improvements that keep a site working hard after it goes live.</p>
+          <!-- "and beyond" used to sit after "launch". It said the same
+               thing as "once it's live" at the end of the same sentence,
+               and the fourth panel's own description closes on "over
+               time": three ways of saying "after launch" inside one
+               section. The clause at the end is the one that earns its
+               place, since it names what actually happens then. -->
+          <p>From first idea to launch: planning, design, front-end development, and the improvements that keep a site working once it's live.</p>
         </div>
 
         <div class="capability-bento" data-capabilities-grid>
@@ -297,7 +483,13 @@
         <div class="section-heading reveal">
           <span class="eyebrow">Web Design &amp; Development Process</span>
           <h2>How a Project Moves Forward</h2>
-          <p>Six steps from the first conversation to a site that keeps getting better. Clear checkpoints, honest timelines, and no surprises at the end.</p>
+          <!-- Second sentence used to read "Clear checkpoints, honest
+               timelines, no surprises at the end." Two problems: it was
+               the most boilerplate line in the section (every agency site
+               makes those three promises), and "no surprises at the end"
+               said the same thing step 05 says. Kept the one specific
+               claim (a checkpoint per step) and dropped the rest. -->
+          <p>Six steps from first conversation to a site that keeps improving, with a clear checkpoint at the end of each one.</p>
         </div>
 
         <div class="process-timeline" data-process-timeline>
@@ -320,14 +512,14 @@
         <!--
           Project legend. Selecting one dims the skills it didn't involve,
           so this section reads as evidence rather than as a list of
-          everything I've ever touched — a standalone skills list gives a
+          everything I've ever touched: a standalone skills list gives a
           visitor no way to judge it.
 
           Rendered by renderSkillsLegend() (js/main.js) from the same
           projects array that drives Selected Peaks, so the two can never
           drift apart. Progressive enhancement: with no JS this container
           stays empty and the skill groups below render as a plain,
-          complete, perfectly readable list — the filter is an addition,
+          complete, perfectly readable list: the filter is an addition,
           never a prerequisite for reading the content.
         -->
         <div class="skills-legend" data-skills-legend>
@@ -346,7 +538,7 @@
         <div class="about__grid reveal">
           <!--
             Headshot, converted from the supplied HeadShot_V2.png (1024x1536,
-            2.3MB) to WebP at 93KB — a 96% saving on what would otherwise be
+            2.3MB) to WebP at 93KB: a 96% saving on what would otherwise be
             the second-heaviest asset on the page.
 
             The source is 2:3 and this frames to 4:5, so it was cropped to
@@ -357,7 +549,7 @@
             alongside it in the same folder as the source file.
 
             width/height are the real file dimensions (900x1125), matching the
-            convention used for the project screenshots in js/data.js —
+            convention used for the project screenshots in js/data.js,
             mismatched values are what make an image look subtly stretched
             before it finishes loading.
 
@@ -381,7 +573,7 @@
               Quick facts, filling what was a large empty gap under the
               photo and giving the section the scannable credential block
               the research kept citing (name, title, focus, education).
-              A <dl> rather than a styled list — these are genuinely
+              A <dl> rather than a styled list: these are genuinely
               term/definition pairs, and the markup should say so.
 
               Every value here is already stated elsewhere on the site
@@ -392,7 +584,7 @@
               >> deliberately left out rather than guessed:
               >>   <div><dt>Based in</dt><dd>Your city, BC</dd></div>
               >>   <div><dt>Status</dt><dd>Open to work / freelance</dd></div>
-              >> The second one especially — "is he available?" is the
+              >> The second one especially: "is he available?" is the
               >> question most visitors to a portfolio are actually asking.
             -->
             <dl class="about__facts">
@@ -400,14 +592,79 @@
                 <dt>Focus</dt>
                 <dd>Front-end development &amp; digital design</dd>
               </div>
+              <!--
+                Location and Availability, added because the site claimed a
+                Lower Mainland service area in its ProfessionalService
+                schema and its meta description while never saying where
+                Travis actually is in any human-readable copy. "Where are
+                you based" is one of the first things both a hiring manager
+                and a local client check, and leaving it to be inferred
+                from markup nobody reads meant the answer was effectively
+                missing.
+
+                "Mission, BC: Lower Mainland" rather than "Mission, BC"
+                alone: the town on its own reads as far from Vancouver to
+                anyone who doesn't know the region, while the regional
+                qualifier places it inside the Metro Vancouver orbit and
+                matches the language the schema already uses.
+
+                Availability sits directly beneath it on purpose. A
+                recruiter reading a location is really asking a logistics
+                question (can this person get here, is relocation involved) so answering it in the next line closes the
+                loop rather than leaving them to guess. Stating remote
+                first also means the location line can't be read as a
+                limitation on its own.
+              -->
+              <!--
+                "Open to" states the thing the site was otherwise only
+                saying in its meta description, where no visitor reads it.
+                The research formula for an About section is who you are
+                -> proof -> WHAT YOU WANT -> a personal touch; without
+                this row the third part was missing entirely, leaving a
+                reader to guess whether Travis wants clients, a job, or
+                both. It sits directly under Focus because "what he does"
+                and "what he's after" are the two things a visitor is
+                scanning for, and above the two logistics rows.
+              -->
               <div>
-                <dt>Studying</dt>
+                <dt>Open to</dt>
+                <dd>Freelance projects &amp; front-end roles</dd>
+              </div>
+              <div>
+                <dt>Location</dt>
+                <dd>Mission, BC (Lower Mainland)</dd>
+              </div>
+              <div>
+                <dt>Availability</dt>
+                <dd>Remote and hybrid</dd>
+              </div>
+              <!--
+                Label is "Education", not "Studying". Travis graduates
+                before this site launches, so a present-continuous label
+                would be wrong within weeks of going live, and "Studying"
+                frames a finished credential as work-in-progress, which
+                undersells it to anyone scanning. "Education" is true
+                before and after the graduation date and never needs
+                revisiting.
+
+                The Person schema already used alumniOf for VanArts, which
+                is the correct property for a completed qualification, so
+                the markup needed no change to match this.
+              -->
+              <div>
+                <dt>Education</dt>
                 <dd>Web Development &amp; Digital Design, VanArts</dd>
               </div>
-              <div>
-                <dt>Works across</dt>
-                <dd>Planning, design, build, launch</dd>
-              </div>
+              <!--
+                A "Works across: Planning, design, build, launch" row used
+                to close this list. Removed: it restated the Process
+                section's own step names almost verbatim, one section
+                below, and it was the only row here not answering a
+                question a visitor actually has. Every row that remains is
+                something someone scanning a portfolio wants to know: what
+                he does, what he's after, where he is, how he can work,
+                and what he trained in.
+              -->
             </dl>
           </div>
 
@@ -418,7 +675,7 @@
             <!--
               Copy reordered to lead with the differentiator rather than
               the credential. The old opening line was "a VanArts Web
-              Development and Digital Design student focused on..." —
+              Development and Digital Design student focused on...",
               which put the least distinctive fact first. What actually
               sets the work apart is the range: being able to hold the
               business goal, the user experience, the design direction,
@@ -428,50 +685,140 @@
             -->
             <p class="about__lead">
               My strength is connecting the parts of a project that usually get handled
-              separately. I can look at the business goal, the user experience, the design
+              separately. I look at the business goal, the user experience, the design
               direction, and the build requirements together, then turn that into something
               clear and usable.
             </p>
+            <!--
+              Was "I'm a Web Development and Digital Design student at
+              VanArts, and I work across...". Two changes.
+
+              "Student" is gone: Travis graduates before launch, so it
+              would be false almost immediately, and it framed him as
+              in-progress next to a portfolio containing a shipped client
+              site. "Trained at" is true either way and doesn't ask the
+              reader to discount anything.
+
+              The clause order flipped so the sentence opens on the range
+              rather than the credential. The credential is the least
+              distinctive thing here (every graduate has one) and this
+              paragraph's actual job is to name the span of work. The
+              school now supports that claim instead of preceding it.
+            -->
             <p>
-              I'm a Web Development and Digital Design student at VanArts, and I work across
-              the whole span of a project rather than one slice of it: client websites, web
-              apps, automation systems, product planning, and digital brand and content work.
+              I work across the whole span of a project rather than one slice of it: client
+              websites, web apps, automation systems, product planning, and digital brand and
+              content work. Trained at VanArts in Web Development and Digital Design.
             </p>
             <p>
               That range is what this portfolio is built around. Every project here involved
               figuring out what the real problem was before building anything.
             </p>
+            <!--
+              The personal detail the research kept asking for, and the
+              single highest-value sentence in this section.
+
+              It replaced a line about living on acreage outside Mission
+              and being outdoors, which justified the site's trail and
+              wayfinding language but said nothing about the work. This
+              one does more with the same space: it explains the career
+              change without needing to state a reason, it accounts for
+              why someone is graduating at this stage, and it sources the
+              process discipline the rest of the page already claims.
+
+              That last part is what makes it load-bearing. The Process
+              section promises scope settled before anything starts, no
+              moving targets, nothing handed over unexplained. From a new
+              graduate that reads as aspiration; from someone who ran
+              construction projects for sixteen years it's just a
+              description of how they already work. Same for the pull
+              quote below about finding the real problem in week one
+              rather than rebuilding in week six, which is a construction
+              instinct before it is ever a software one.
+
+              It also quietly explains the strongest project on the site:
+              Mountainside Millwork is a millwork company, and a former
+              construction PM building their website is not a coincidence
+              a visitor has to overlook.
+
+              Deliberately no reason given for the change, and deliberately
+              not a hobbies list or a "when I'm not coding you'll find
+              me..." line: that construction is the exact cliche the
+              portfolio research flags, and it would cheapen a page that
+              has so far avoided every other one.
+            -->
+            <p>
+              Before this I spent 16 years in construction and project management. Most of what
+              carried over isn't technical: scoping work before it starts, sequencing it so
+              nothing gets built twice, and talking to an owner about what they actually need.
+            </p>
 
             <!--
-              TODO (Travis): consider one short, genuinely personal line
-              here — what you do away from the screen, what got you into
-              this. Every source in the research flagged personality as
-              what separates a memorable About from a résumé summary, and
-              this section is currently all-professional. Deliberately left
-              blank rather than invented, since it has to be true and it
-              has to be yours.
+              The personal line the research kept calling for: what
+              separates a memorable About from a résumé summary. Kept to
+              one sentence about working style rather than biography,
+              which is what was chosen: enough warmth to read as a person
+              without shifting the section's professional weight.
+
+              Not invented. It restates what the site already claims in
+              two other places: the Process section leads with
+              "Understand", and the opening paragraph above is about
+              settling goals and scope before building, so this is the
+              same idea in a human voice rather than a new assertion.
+
+              >> TRAVIS: this is the one line here written in your voice
+              >> rather than about your work. If it ever stops sounding
+              >> like you, rewrite it: a personal line that reads as
+              >> borrowed is worse than none at all.
             -->
+            <p class="about__personal">
+              I ask a lot of questions early on. I'd rather find the real problem in the first
+              week than rebuild in the sixth.
+            </p>
 
             <div class="about__actions">
               <!--
-                TODO: Resume file not uploaded yet. Once ready, replace this
-                disabled button with a real link to the Front-End Developer resume
-                PDF (this is the primary resume for V1 — do not link both resumes).
+                Real link now (was a disabled placeholder button with a
+                .placeholder-note beside it; both removed, since the file
+                exists). One resume only, the front-end developer one, per
+                the standing decision recorded here from the start: the
+                digital designer version is versioned alongside it in
+                assets/docs/ but deliberately not linked. Offering a
+                visitor a choice between a "dev" and a "design" resume
+                would contradict this section's own claim, made a few
+                inches above, that Travis works across the whole span of a
+                project rather than one slice of it.
 
-                Now the chamfered waypoint shape used by every other CTA on
-                the site — this was the last rounded pill button left, and
-                it read as a stray component from an earlier design pass.
+                Chamfered waypoint shape used by every other CTA on the
+                site: this was the last rounded pill button left, and it
+                read as a stray component from an earlier design pass.
                 Wrapped in .btn__wrap so setupWaypointRings() (js/main.js)
                 draws its outline ring, same as the hero's secondary CTA.
+
+                target="_blank" because a PDF replacing the page is a
+                dead end: the visitor has to use Back to return to a
+                portfolio they were part-way through. rel="noopener" for
+                the usual reason. `download` is deliberately NOT set:
+                that forces a save instead of letting the browser's own
+                PDF viewer open it, and most people would rather glance
+                at a resume than commit it to their Downloads folder.
+
+                type="application/pdf" tells the browser what's coming
+                before it fetches; the visually-hidden span gives screen
+                reader users the format and new-tab cue that sighted
+                users get from the tab appearing and the PDF rendering.
               -->
               <span class="btn__wrap btn__wrap--secondary">
-                <button type="button" class="btn btn--secondary btn--waypoint btn--disabled" disabled>
-                  View Resume
-                </button>
+                <a
+                  class="btn btn--secondary btn--waypoint"
+                  href="assets/docs/travis-peakman-front-end-developer-resume.pdf"
+                  type="application/pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View Resume<span class="visually-hidden"> (PDF, opens in a new tab)</span>
+                </a>
                 <svg class="btn__ring" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path></path></svg>
-              </span>
-              <span class="placeholder-note">
-                Resume (Front-End Developer resume) is not uploaded yet — button is a placeholder until it's ready.
               </span>
             </div>
           </div>
@@ -487,18 +834,41 @@
       2-4x the conversion of a mailto, because a mailto opens an
       unpredictable mail client and loses anyone on webmail entirely. The
       three additions below are what the same research says to do when
-      you're not running a form — set expectations, state availability,
-      and give a location — so the section still does its job.
+      you're not running a form (set expectations, state availability, and give a location) so the section still does its job.
     -->
     <section id="contact" class="contact">
-      <div class="container contact__inner reveal">
+      <!--
+        Two columns on desktop: the pitch and every way of reaching me on
+        the left, the form on the right. Stacked in one narrow column it
+        ran well past the fold on a large monitor while leaving most of
+        the width empty: the two halves are naturally side by side, not
+        sequential.
+
+        Worth noting this doesn't contradict the earlier finding that
+        single-column forms outperform multi-column ones: that's about
+        the FIELDS stacking, which they still do. Splitting the section
+        is what halves the height.
+      -->
+      <div class="container contact__grid reveal">
+        <div class="contact__intro">
         <!--
           "Start Here" is the trailhead at the end of the route: the hero
           opens with a figure at the bottom of a mountain, and this is
-          where the next climb begins. The eyebrow carries the plain
-          searchable terms, same pattern as every other section.
+          where the next climb begins.
+
+          The eyebrow was "Start a Project", which had two problems. It
+          opened with the same word as the H2 directly beneath it, so the
+          section led with "Start... Start". And it was the only eyebrow on
+          the site that was a call to action rather than a label: every
+          other one names what the section IS ("Web & App Development
+          Portfolio", "Tools, Languages & Skills", "About"). Stacking two
+          calls to action also wastes the first, since the H2 says the same
+          thing louder and bigger.
+
+          "Contact" matches the nav item and the section id, and follows
+          the plain-label precedent the About section already set.
         -->
-        <span class="eyebrow">Start a Project</span>
+        <span class="eyebrow">Contact</span>
         <h2>Start Here</h2>
         <p>
           Have a project, a role, or a rough idea that needs a clearer path? Tell me what
@@ -512,7 +882,7 @@
           the questions a visitor is silently asking, and a portfolio that
           doesn't answer them leaves that to guesswork.
 
-          The status dot is decorative and marked aria-hidden — the text
+          The status dot is decorative and marked aria-hidden: the text
           beside it already says the same thing, so a screen reader would
           otherwise announce a meaningless bullet.
 
@@ -522,12 +892,52 @@
         <ul class="contact__facts">
           <li class="contact__status">
             <span class="contact__status-dot" aria-hidden="true"></span>
-            Open to roles and freelance work
+            Open to freelance projects and front-end roles
           </li>
           <li>Usually replies within a day</li>
-          <li>Lower Mainland, BC &middot; Pacific Time</li>
+          <li>Mission, BC &middot; Pacific Time</li>
         </ul>
 
+        <!--
+          Social links and the direct email address moved up here from
+          below the form. They're contact options, the same as the form
+          is, sitting after it they read as stray buttons appended to
+          the section rather than part of the same offer. Grouping every
+          route to me in one column also leaves the form standing alone
+          on the right with a single obvious action.
+        -->
+        <!--
+          Chamfered like every other button on the site. These two were
+          the last rounded pills left, .btn's base border-radius is a
+          pill, and they never picked up .btn--waypoint the way the hero,
+          nav, résumé and submit buttons did. Sitting beside a chamfered
+          Send Message they read as a different component.
+
+          .btn--waypoint.btn--on-dark styling already existed in
+          components.css, so this is markup only. Wrapped in
+          .btn__wrap--secondary for the same reason the other outline
+          buttons are: the ring is an SVG sibling of the button rather
+          than a child, because a clip-path on the button would clip a
+          ring nested inside it.
+        -->
+        <div class="contact__actions">
+          <span class="btn__wrap btn__wrap--secondary">
+            <a class="btn btn--on-dark btn--waypoint" href="https://github.com/travispeakman" target="_blank" rel="me noopener noreferrer">View GitHub</a>
+            <svg class="btn__ring" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path></path></svg>
+          </span>
+          <span class="btn__wrap btn__wrap--secondary">
+            <a class="btn btn--on-dark btn--waypoint" href="https://www.linkedin.com/in/travispeakman" target="_blank" rel="me noopener noreferrer">Connect on LinkedIn</a>
+            <svg class="btn__ring" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path></path></svg>
+          </span>
+        </div>
+
+        <p class="contact__direct">
+          Prefer email?
+          <a href="mailto:TravisPeakman@outlook.com">TravisPeakman@outlook.com</a>
+        </p>
+        </div>
+
+        <div class="contact__form-col">
         <!--
           ============================ CONTACT FORM ============================
 
@@ -539,9 +949,9 @@
           setupContactForm() in js/main.js already does by hand. Not used
           here, deliberately: this site currently has ZERO external
           JavaScript dependencies, and the TRP build standards call for
-          avoiding unnecessary libraries. Adding a CDN script — a
+          avoiding unnecessary libraries. Adding a CDN script: a
           third-party request on every page load, an extra thing to
-          break, and a version to keep an eye on — to replace ~60 lines
+          break, and a version to keep an eye on, to replace ~60 lines
           of working vanilla fetch isn't a trade worth making.
 
           The one real feature the SDK adds is per-field error messages
@@ -560,7 +970,7 @@
           keeps the person on the page.
 
           Native validation attributes (required, type="email") rather
-          than custom JS checks — browsers already do this accessibly,
+          than custom JS checks: browsers already do this accessibly,
           announce it to screen readers, and localise the messages.
         -->
         <form
@@ -575,19 +985,19 @@
             submission on ..."), which tells you nothing once more than
             one is sitting in an inbox.
 
-            The field is `subject`, NOT `_subject` — the underscore-
+            The field is `subject`, NOT `_subject`: the underscore-
             prefixed name is Formspree's older convention and is what a
             first attempt here used; it was silently ignored and the
             default subject came through instead (confirmed on a live
             test submission).
 
             {{ }} interpolates other fields from the same submission, so
-            the subject carries the topic and sender: "TRP portfolio —
+            the subject carries the topic and sender: "TRP portfolio:
             A project or website from Travis Peakman". That's the whole
-            point of the topic dropdown — it's only useful for triage if
+            point of the topic dropdown: it's only useful for triage if
             it's visible before the message is opened.
           -->
-          <input type="hidden" name="subject" value="TRP portfolio — {{ topic }} from {{ name }}" />
+          <input type="hidden" name="subject" value="TRP portfolio: {{ topic }} from {{ name }}" />
           <div class="contact-form__field">
             <label for="contact-name">Name</label>
             <input type="text" id="contact-name" name="name" autocomplete="name" required />
@@ -621,7 +1031,7 @@
 
           <!--
             Honeypot. Formspree discards any submission with _gotcha
-            filled in — bots complete every field they find, people never
+            filled in: bots complete every field they find, people never
             see this one. Hidden with a class rather than type="hidden",
             since bots skip genuinely hidden inputs. tabindex="-1" and
             aria-hidden keep it out of the way of keyboard and screen
@@ -644,46 +1054,104 @@
           -->
           <p class="contact-form__status" role="status" aria-live="polite" data-form-status></p>
         </form>
-
-        <div class="contact__actions">
-          <a class="btn btn--on-dark" href="https://github.com/Trav1687" target="_blank" rel="noopener noreferrer">View GitHub</a>
-          <a class="btn btn--on-dark" href="https://www.linkedin.com/in/travispeakman" target="_blank" rel="noopener noreferrer">Connect on LinkedIn</a>
         </div>
-
-        <!--
-          The address in plain text as well as behind the button. A mailto
-          is a dead end for anyone on webmail or a locked-down machine —
-          the research was explicit that direct details shouldn't be
-          buried, and this is the fallback that makes the button safe to
-          rely on.
-        -->
-        <p class="contact__direct">
-          Prefer email?
-          <a href="mailto:TravisPeakman@outlook.com">TravisPeakman@outlook.com</a>
-        </p>
       </div>
     </section>
   </main>
 
+  <!--
+    Three groups plus a bottom bar. Deliberately not a four-to-six column
+    sitemap footer: that guidance is aimed at content-heavy sites, and on
+    a one-page portfolio those columns would mostly repeat the nav. The
+    portfolio-specific advice points the other way, toward minimal, so
+    this sits between the two: enough structure to be genuinely useful,
+    without rebuilding a sitemap for six sections.
+
+    Each group is a labelled <nav>/<ul> rather than loose <a> tags in a
+    div, which is what the previous version was. Headings and lists are
+    what let a screen reader user skip between groups instead of hearing
+    six links in a row with no idea what separates them.
+
+    Section links and Privacy are now separated too. They were in one
+    undifferentiated row, but they answer different intents ("take me to part of this page" versus "show me the legal page") and Privacy
+    now sits in the bottom bar where legal links are conventionally
+    looked for.
+  -->
   <footer class="site-footer">
-    <div class="container site-footer__inner">
-      <div>
-        <img src="assets/logos/trp-logo-white.svg" alt="TRP" width="120" height="30" />
-        <p>Travis Peakman — Front-end developer &amp; digital problem-solver</p>
+    <div class="container">
+      <div class="site-footer__groups">
+        <div class="site-footer__brand">
+          <img src="assets/logos/trp-logo-white.svg" alt="TRP" width="120" height="30" />
+          <p>Travis Peakman &middot; Front-end developer &amp; digital problem-solver</p>
+          <!--
+            Repeats the Contact section's availability so it's visible
+            from the bottom of the page without scrolling back up.
+            >> TRAVIS: this is the SECOND place the status appears: if it
+            >> changes, update the Contact section too.
+          -->
+          <p class="site-footer__status">
+            <span class="contact__status-dot" aria-hidden="true"></span>
+            Open to freelance projects and front-end roles
+          </p>
+        </div>
+
+        <nav class="site-footer__group" aria-labelledby="footer-nav-heading">
+          <h2 class="site-footer__heading" id="footer-nav-heading">Navigate</h2>
+          <ul>
+            <li><a href="#work">Work</a></li>
+            <li><a href="#what-i-do">What I Do</a></li>
+            <li><a href="#process">Process</a></li>
+            <!-- #tools-and-skills, not #skills: that section's id is
+                 tools-and-skills, and this footer link was the one place
+                 still pointing at a non-existent #skills anchor, so it
+                 did nothing when clicked. -->
+            <li><a href="#tools-and-skills">Skills</a></li>
+            <li><a href="#about">About</a></li>
+          </ul>
+        </nav>
+
+        <nav class="site-footer__group" aria-labelledby="footer-connect-heading">
+          <h2 class="site-footer__heading" id="footer-connect-heading">Connect</h2>
+          <ul>
+            <li><a href="mailto:TravisPeakman@outlook.com">TravisPeakman@outlook.com</a></li>
+            <li><a href="https://github.com/travispeakman" target="_blank" rel="me noopener noreferrer">GitHub</a></li>
+            <li><a href="https://www.linkedin.com/in/travispeakman" target="_blank" rel="me noopener noreferrer">LinkedIn</a></li>
+          </ul>
+        </nav>
       </div>
 
-      <div class="site-footer__links">
-        <a href="#work">Work</a>
-        <a href="#what-i-do">What I Do</a>
-        <a href="#process">Process</a>
-        <!-- #tools-and-skills, not #skills: that section's id is
-             tools-and-skills, and this footer link was the one place
-             still pointing at a non-existent #skills anchor, so it did
-             nothing when clicked. The main and mobile nav were already
-             correct. -->
-        <a href="#tools-and-skills">Skills</a>
-        <a href="#about">About</a>
-        <a href="privacy.html">Privacy</a>
+      <div class="site-footer__bar">
+        <!--
+          The year is written by setupFooterYear() (js/main.js) rather
+          than hard-coded, so it can't quietly go stale. The markup ships
+          with the correct year as its fallback content, so with JS off
+          it's still right: it just stops updating.
+        -->
+        <p class="site-footer__copyright">
+          &copy; <span data-current-year>2026</span> Travis Peakman
+        </p>
+        <div class="site-footer__bar-links">
+          <a href="privacy.html">Privacy</a>
+          <!--
+            Points at #top, the hero's own id, rather than "#": a bare
+            "#" jumps to the document top but also writes a bare hash
+            into the URL and doesn't respect scroll-behavior: smooth.
+
+            Styled as a control rather than a plain text link: it sat
+            next to Privacy in identical styling, so the one thing in the
+            bar that DOES something looked the same as the one that just
+            navigates. The chevron is inline SVG rather than a character
+            like ↑: it renders identically everywhere, scales with the
+            text, and takes its colour from currentColor. aria-hidden
+            because the label already says where it goes.
+          -->
+          <a href="#top" class="site-footer__top">
+            <svg class="site-footer__top-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <polyline points="6 14 12 8 18 14"></polyline>
+            </svg>
+            Back to top
+          </a>
+        </div>
       </div>
     </div>
   </footer>

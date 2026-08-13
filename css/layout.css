@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Layout — container, section rhythm, header/nav, grid patterns.
+   Layout: container, section rhythm, header/nav, grid patterns.
    ========================================================================== */
 
 .container {
@@ -11,12 +11,12 @@
 
 /* Every top-level section is now its own scroll-snap stop, on top of
    the project cards inside Selected Peaks that already opt in the same
-   way (components.css) — scroll-snap-type: y proximity lives on html
+   way (components.css): scroll-snap-type: y proximity lives on html
    in global.css (off for prefers-reduced-motion), so this only ever
    nudges a scroll that's already coming to rest near a section's top
    into clean alignment; it never overrides where someone's actually
    trying to stop, the same reasoning that kept the project cards on
-   proximity instead of mandatory. start, not center — most of these
+   proximity instead of mandatory. start, not center: most of these
    sections (Selected Peaks, What I Do, Tools & Skills) run taller than
    the viewport, so aligning the top edge is the only version of
    "snapped" that makes sense; centering a much-taller-than-viewport
@@ -26,7 +26,7 @@
    up tucked under the header.
 
    scroll-snap-stop: always is what makes this feel snappier, not a
-   switch to mandatory — with the default (normal), a fast flick of the
+   switch to mandatory, with the default (normal), a fast flick of the
    scroll wheel/trackpad can glide straight past a section's snap point
    without ever engaging it, which is why the first pass felt barely
    there. always forces the very next snap point to actually catch the
@@ -34,7 +34,7 @@
    snap when someone's deliberately stopping mid-section the way full
    mandatory would. */
 section {
-  /* --space-xl (was --space-section, up to 8rem top/bottom) — per
+  /* --space-xl (was --space-section, up to 8rem top/bottom): per
      direct request that every section share the exact same padding
      so the page's rhythm reads as uniform. This used to be the
      variable only #what-i-do was trimmed down to (its own solid Slate
@@ -45,7 +45,9 @@ section {
   padding-block: var(--space-xl);
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  scroll-margin-top: 5rem;
+  /* scroll-margin-top: 5rem removed: scroll-padding-top on html
+     (global.css) now offsets every anchor in the document from one
+     value tied to the header's real height. */
 }
 
 /* ---- Header / Nav ------------------------------------------------------ */
@@ -54,17 +56,27 @@ section {
   position: sticky;
   top: 0;
   z-index: 50;
-  /* Dark header is the primary direction now — see FIX/summary notes. */
+  /* Dark header is the primary direction now, see FIX/summary notes. */
   background: rgba(20, 33, 61, 0.92);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--color-slate-blue-grey);
 }
 
+/* 0.75rem, down from --space-sm (1rem). With the Contact button setting
+   the inner height at ~41px, 1rem of padding put the header at ~74px,
+   just outside the 50-70px band recommended for desktop, though still
+   comfortably under the 10%-of-viewport ceiling. 0.75rem brings it to
+   ~66px, inside the band, and hands the difference back to content on
+   every screen.
+
+   --header-height below is derived from these same numbers and is what
+   drives the anchor offset (see html in global.css), so the two can't
+   drift apart the way seven hand-tuned scroll-margin-top values could. */
 .site-header__inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-block: var(--space-sm);
+  padding-block: 0.75rem;
 }
 
 .site-header__logo {
@@ -88,10 +100,29 @@ section {
 
 .main-nav__list {
   display: flex;
-  /* Six items now that Skills is included — keep the gap responsive so the
+  /* Six items now that Skills is included: keep the gap responsive so the
      nav doesn't feel cramped right at the 860px breakpoint. */
   gap: clamp(1rem, 2vw, 2.5rem);
   align-items: center;
+}
+
+/* Extra separation before the Contact CTA.
+
+   It's an <li> in the same list as the section links, so it inherited
+   the same gap and read as the sixth navigation item rather than a
+   distinct action. The five plain links are one group (places on this page) and Contact is something else entirely, so the spacing should
+   say so.
+
+   Applied with margin-inline-start on the item rather than a larger gap,
+   because `gap` can't vary between individual flex items. Scaled to the
+   list's own responsive gap (roughly half again) so the two stay in
+   proportion as the viewport changes, instead of the separation
+   collapsing or ballooning relative to the rhythm around it.
+
+   :last-child rather than a class: Contact is the last item by
+   definition here: the CTA that closes the route. */
+.main-nav__list > li:last-child {
+  margin-inline-start: clamp(0.5rem, 1vw, 1.25rem);
 }
 
 .main-nav__link {
@@ -107,7 +138,7 @@ section {
 }
 
 .main-nav__link:hover {
-  /* border-color removed here too, matching .is-active below — same
+  /* border-color removed here too, matching .is-active below, same
      reasoning: the dashed .nav-progress__fill line is the only
      progress/state indicator now, not a solid underline. Text color
      still changes on hover for feedback. */
@@ -115,7 +146,7 @@ section {
 }
 
 /* .is-active deliberately does NOT set border-color (unlike :hover
-   above) — a solid orange underline on the active link was
+   above): a solid orange underline on the active link was
    duplicating/clashing with the dashed .nav-progress__fill line right
    below it (confirmed in testing: "remove the solid line at the
    bottom"). The dashed fill is the only indicator of progress/current
@@ -124,19 +155,19 @@ section {
   color: var(--color-accent);
 }
 
-/* Route-progress track — sizing/positioning container for the dashed
+/* Route-progress track, sizing/positioning container for the dashed
    orange fill under the plain nav links (Work through About), which
    grows as you scroll through the matching section, echoing the dashed
    route line in the hero illustration. left/width/top are all set at
-   runtime by setupNavProgress() (js/main.js), not in CSS — the nav's
+   runtime by setupNavProgress() (js/main.js), not in CSS: the nav's
    gap is a responsive clamp(), so a fixed value here would drift out
    of sync with where the links actually render.
 
-   No background of its own — a first version gave this a dim,
+   No background of its own: a first version gave this a dim,
    always-visible dashed line as a "track" for the fill to grow along,
    but that meant a visible line ran under the nav even before
    scrolling anywhere (confirmed in testing: "when you're at the top,
-   you can see the dotted line — I don't wanna see it"). Now nothing is
+   you can see the dotted line: I don't wanna see it"). Now nothing is
    visible here at all except whatever .nav-progress__fill itself
    draws. */
 .nav-progress {
@@ -248,7 +279,7 @@ section {
   }
 }
 
-/* Restrained background grid — structure, not graph paper. Very low
+/* Restrained background grid: structure, not graph paper. Very low
    opacity, generous spacing, so it reads as texture from a normal viewing
    distance rather than a visible pattern. */
 .hero::before {
@@ -263,7 +294,7 @@ section {
   pointer-events: none;
 }
 
-/* Full-bleed illustrated scene — raster asset, applied as a CSS background
+/* Full-bleed illustrated scene: raster asset, applied as a CSS background
    rather than an <img> or inline <svg> (see the TODO comment on the
    .hero__scene element in index.html: the asset isn't placed yet, so this
    renders empty and the hero falls back to the plain Deep Navy background
@@ -271,7 +302,7 @@ section {
    the dark overlay and the real text content.
 
    background-position favours the right side of the image, where the
-   mountain/route/peak/UI-panel story lives — the quieter left portion of
+   mountain/route/peak/UI-panel story lives: the quieter left portion of
    the image is what gets cropped away first as the hero gets narrower or
    shorter, same intent as the previous SVG's preserveAspectRatio trick, but
    expressed with a plain cover + position rule since this is now a normal
@@ -292,7 +323,7 @@ section {
 
      This fixes a faint vertical line visible on wide monitors. The image
      is 1.777:1, and from 1600px up the rules below size it `auto 100%`
-     rather than `cover` — deliberately, to stop it over-zooming on very
+     rather than `cover`: deliberately, to stop it over-zooming on very
      wide screens. The side effect is that past a certain width the image
      stops short of the hero's left edge, and its own edge lands mid-hero
      as a hard seam between those two navies. Painting this box in the
@@ -309,21 +340,21 @@ section {
 
 /* Load-in glow, built as pseudo-elements on .hero__scene rather than a
    separately traced overlay (see the comment on .hero__scene in
-   index.html for why). ::after uses trp-hero-route-mask.png — a derived
+   index.html for why). ::after uses trp-hero-route-mask.png: a derived
    asset containing ONLY the route/waypoint-dot/peak-marker pixels from
    the original image, with everything else made transparent. Because
    there's nothing else in this layer, brightening it can't lighten the
    mountains or background the way a blended duplicate of the full image
-   did — there's simply nothing else there to brighten.
+   did: there's simply nothing else there to brighten.
 
    Because this duplicates the same image's framing, it MUST mirror
    .hero__scene's own background-size/background-position at every
-   breakpoint (see the mobile and wide-desktop overrides below) — if it
+   breakpoint (see the mobile and wide-desktop overrides below): if it
    didn't, it would drift out of registration.
 
    trp-hero-route-mask.png was generated from trp-hero-scene-wide.png by
    isolating pixels where the red channel notably exceeds the blue channel
-   (i.e. warm/orange-toned) and fading in alpha across that threshold —
+   (i.e. warm/orange-toned) and fading in alpha across that threshold:
    this is what a raster asset lets us do that a hand-traced vector path
    couldn't: perfect pixel-for-pixel registration, because it IS the same
    pixels, just isolated.
@@ -333,14 +364,13 @@ section {
    comfortably past the peak. setupHeroRouteDraw() in js/main.js maps
    fixed pixel coordinates from the source image (where the route's
    bottom and the peak marker actually are) onto wherever that image
-   currently lands on screen — reading the live computed
-   background-size/position rather than assuming one — and sets
+   currently lands on screen (reading the live computed background-size/position rather than assuming one) and sets
    --sweep-origin-x/-y and --sweep-r (all real pixel values) from that.
    This replaced two earlier approaches that both drifted: a diagonal
    sweep positioned via mask-position percentages worked out offline
    (assumed one fixed viewport aspect ratio), and, before that, the
    peak-marker pulse below being positioned via plain CSS percentages of
-   the box — which stayed put relative to the BOX even when the image's
+   the box, which stayed put relative to the BOX even when the image's
    crop shifted underneath it at a breakpoint or on resize/zoom.
    mapImagePointToBox() in js/main.js is what both this and the
    peak-marker pulse now use. */
@@ -354,7 +384,7 @@ section {
   background-position: right center;
   /* No brightness() here on purpose: Trail Orange's red channel (252 of
      255) is already near-maxed, so brightness() clips red almost
-     immediately while green keeps climbing — the hue visibly shifts
+     immediately while green keeps climbing: the hue visibly shifts
      toward pale yellow instead of just getting brighter. A colored
      drop-shadow glows around the true color instead of distorting it.
 
@@ -362,19 +392,19 @@ section {
      18px/0.8, inner 3px/0.9 → 4px/0.95) alongside a wider --sweep-band
      (90 → 140 → 175 in js/main.js) was tried to make the moving line
      easier to catch on a first viewing, then explicitly reverted back
-     to these original values — asked for directly ("I wanna go back to
+     to these original values, asked for directly ("I wanna go back to
      the way it was before we made those changes"), independent of and
      kept alongside the later hard-edge mask fix below. */
   filter: blur(0.5px) drop-shadow(0 0 3px rgba(252, 163, 17, 0.9)) drop-shadow(0 0 6px rgba(252, 163, 17, 0.5));
   /* --sweep-r is set directly by JS on every animation frame (not
-     transitioned by CSS) — see setupHeroRouteDraw() in js/main.js. The
+     transitioned by CSS), see setupHeroRouteDraw() in js/main.js. The
      fallback value here (0px) only matters before JS has run its first
      frame, or if JS fails entirely (safeRun in main.js means a failure
      here just leaves the layer fully unrevealed rather than breaking
      anything else).
 
      The mask's own fade width is a small fixed 10px now, not
-     --sweep-band (BAND_PX in js/main.js — back to 90, its original
+     --sweep-band (BAND_PX in js/main.js: back to 90, its original
      value, but that's now a separate, JS-only timing value for when the
      peak marker counts as "reached," unrelated to this mask). A wide
      soft mask fade was
@@ -383,7 +413,7 @@ section {
      HARDER to catch with the eye than a crisp one would be ("if it was
      a hard line, I might catch it better"). The drop-shadow glow above
      still gives the revealed trail its warmth/visibility along its
-     length — only the actual moving tip is a hard cutoff now. */
+     length: only the actual moving tip is a hard cutoff now. */
   mask-image: radial-gradient(
     circle at var(--sweep-origin-x, 58%) var(--sweep-origin-y, 92%),
     black,
@@ -411,12 +441,12 @@ section {
    once the sweep above has had time to climb there. left/top read
    --peak-x/--peak-y, set by setupHeroRouteDraw() in js/main.js from the
    marker's real pixel position in the source image, mapped through the
-   live background-size/position — not a fixed percentage of the box.
+   live background-size/position: not a fixed percentage of the box.
    A fixed percentage drifted off the marker whenever the image's cover
    crop changed underneath it (different breakpoints, a resize, browser
    zoom crossing a breakpoint) since the box's percentage grid doesn't
    move with the image inside it. The fallback values below only apply
-   before JS has run, or if it fails — see mapImagePointToBox(). */
+   before JS has run, or if it fails, see mapImagePointToBox(). */
 .hero__scene::before {
   content: "";
   position: absolute;
@@ -428,7 +458,7 @@ section {
   border-radius: 50%;
   background: radial-gradient(circle, rgba(252, 163, 17, 0.9) 0%, rgba(252, 163, 17, 0.3) 30%, transparent 55%);
   opacity: 0;
-  /* No transition-delay here on purpose — see the note on "is-peak-lit"
+  /* No transition-delay here on purpose, see the note on "is-peak-lit"
      below for why a fixed delay doesn't work for this.
 
      Deliberately NOT transitioning left/top: setupHeroRouteDraw() in
@@ -436,7 +466,7 @@ section {
      tracks a resize/zoom tightly (about once per frame). A transition on
      top of that live tracking would always be easing toward a target
      that's itself still moving, which reads as the dot trailing/lagging
-     behind rather than sitting still — worse than just snapping directly
+     behind rather than sitting still: worse than just snapping directly
      to each recomputed position, which is what happens without one. */
   transition: opacity 0.8s ease-out, transform 0.8s ease-out;
   pointer-events: none;
@@ -444,16 +474,16 @@ section {
 
 /* "is-peak-lit" (as opposed to piggybacking on "is-glowing") is added by
    setupHeroRouteDraw() in js/main.js at the exact moment the growing
-   sweep circle's radius has fully covered the peak — not on a fixed
+   sweep circle's radius has fully covered the peak: not on a fixed
    delay. An earlier version used transition-delay: 7.2s, sized to line
    up with the sweep's fixed 8s duration, but that assumed the sweep
    circle's radius reaches the peak right as the animation finishes. It
    doesn't: the circle grows to 20% past the peak's distance (so the peak
    is comfortably inside the fully-lit zone, not right at the fading
-   edge — see setupHeroRouteDraw()), which means it actually arrives
+   edge, see setupHeroRouteDraw()), which means it actually arrives
    noticeably before 8s, and that arrival time depends on the feet-to-peak
    distance, which is different at every viewport. A fixed delay could
-   only ever be correct for one specific distance — which is exactly why
+   only ever be correct for one specific distance, which is exactly why
    the pulse was showing up a couple of seconds late. */
 .hero__scene.is-peak-lit::before {
   opacity: 1;
@@ -462,7 +492,7 @@ section {
 }
 
 /* A more emphatic "arrival" version (a few bigger pulses before settling
-   into this loop) was tried here and reverted — it read as too abrupt
+   into this loop) was tried here and reverted: it read as too abrupt
    (confirmed: "doesn't look right"). Back to just this one quiet,
    continuous pulse, same as before. */
 
@@ -489,7 +519,7 @@ section {
   }
 }
 
-/* Dark gradient overlay — solid Deep Navy on the left (protects text
+/* Dark gradient overlay: solid Deep Navy on the left (protects text
    contrast) fading toward more transparent on the right (lets the scene's
    detail show through). This is what actually keeps the hero readable
    regardless of what the scene is doing underneath. */
@@ -520,7 +550,7 @@ section {
     background-position: right bottom;
   }
 
-  /* ::after duplicates .hero__scene's own background image (see above) —
+  /* ::after duplicates .hero__scene's own background image (see above):
      must match its background-position here too, or the glow sweep would
      be lit up over a different crop than what's actually visible. The
      peak-marker pulse (::before) is hidden instead of repositioned: at
@@ -541,7 +571,7 @@ section {
 
 /* Wide desktop (1600px+): `cover` keeps scaling the image wider as the
    viewport widens, but the hero's height stays roughly fixed past ~1280px
-   (see the clamp() on .hero padding above) — so past a certain width,
+   (see the clamp() on .hero padding above), so past a certain width,
    `cover` is forced to zoom in further just to fill the extra width,
    stretching the mountain/route/panel grouping thinner and pushing it
    further from the text than the composition that reads well on a
@@ -549,7 +579,7 @@ section {
    height only (auto height driven, no longer led by container width) so
    its rendered width stops growing with the viewport. Anchored right, so
    any extra width beyond that just becomes more quiet dark space on the
-   left — which suits the design anyway — rather than the scene stretching
+   left (which suits the design anyway) rather than the scene stretching
    into it. */
 @media (min-width: 1600px) {
   .hero__scene {
@@ -557,7 +587,7 @@ section {
     background-position: right center;
   }
 
-  /* ::after duplicates the same image — mirror the frozen-zoom sizing
+  /* ::after duplicates the same image: mirror the frozen-zoom sizing
      here too, same reasoning as the mobile override above. */
   .hero__scene::after {
     background-size: auto 100%;
@@ -600,7 +630,7 @@ section {
   line-height: 1.22;
 }
 
-/* Just the closing period, wrapped in its own span in index.html —
+/* Just the closing period, wrapped in its own span in index.html:
    Trail Orange instead of the headline's own inherited white, a small
    accent tying the sentence's end to the brand color. */
 .hero__period {
@@ -629,13 +659,13 @@ section {
 .hero__actions {
   display: flex;
   flex-wrap: wrap;
-  /* align-items: center, not the flex default of stretch — with the
+  /* align-items: center, not the flex default of stretch, with the
      default, this container was silently forcing both .btn__wrap
      children to match the height of the TALLER one (the primary CTA),
      which is why every font-size/padding change made to shrink the
      secondary CTA's height never actually showed up visually: the
      padding was applied correctly, but stretch was overriding the
-     rendered height regardless (confirmed in testing — the two
+     rendered height regardless (confirmed in testing: the two
      buttons kept looking the same size no matter how much smaller
      secondary's own CSS got). center lets each button size to its own
      content and just aligns them on their vertical center instead. */
@@ -645,12 +675,12 @@ section {
 }
 
 /* The secondary CTA is a transparent/navy-border button by default
-   (components.css) — on the dark hero it needs a light outline instead.
+   (components.css), on the dark hero it needs a light outline instead.
    .btn__wrap--secondary (not the generic .btn__wrap, which also wraps
    the primary button) is included here too: the ring svg (.btn__ring)
    lives as a sibling of the button rather than a child of it (see
    components.css for why), so it inherits `color` from the wrapper, not
-   from .btn--secondary directly — without this, the ring would stay
+   from .btn--secondary directly, without this, the ring would stay
    off-white and never pick up the navy hover swap. Primary's ring
    doesn't need this: it's colored explicitly (Slate Blue-Grey), not via
    currentColor, so it has no reason to share this selector. */
@@ -663,13 +693,13 @@ section {
 .hero .btn--secondary:hover,
 .hero .btn__wrap--secondary:hover {
   /* Reuses the primary CTA's exact ::after inset-patch mechanism
-     (components.css) instead of an independently-computed border —
+     (components.css) instead of an independently-computed border,
      every attempt at a separately-traced hover border (clip-path ring,
      svg stroke, drop-shadow fake-stroke) eventually showed some kind of
      edge mismatch, while the inset-patch technique has had none since
      it was built for the primary button. This element's own background
      becomes the thin outer sliver (navy); the ::after patch becomes the
-     interior fill — Slate Blue-Grey rather than Trail Orange, a more
+     interior fill: Slate Blue-Grey rather than Trail Orange, a more
      muted choice for this secondary CTA's hover state. Off-white text
      (rather than navy) for contrast against that mid-toned fill.
      background here is a no-op on .btn__wrap (no visible fill of its
@@ -679,14 +709,14 @@ section {
 }
 
 /* Secondary's ring: visible by default (the hollow look), hidden on
-   hover — unchanged. Scoped to --secondary specifically now (was the
+   hover, unchanged. Scoped to --secondary specifically now (was the
    generic .btn__wrap) since primary's ring reversed direction below,
    at the user's request to swap its default/:hover styling. */
 .btn__wrap--secondary:hover .btn__ring {
   opacity: 0;
 }
 
-/* Primary's ring is kept fully hidden, on hover too — the user asked to
+/* Primary's ring is kept fully hidden, on hover too: the user asked to
    remove the black (Charcoal) border that used to fade in on hover for
    any primary CTA (hero and nav both use .btn__wrap--primary, so this
    one rule covers both). Left at opacity: 0 rather than deleting the
@@ -698,14 +728,14 @@ section {
 }
 
 /* Note: the old .hero__visual boxed-panel treatment (right-column framed
-   route graphic) has been removed — superseded by the full-bleed
+   route graphic) has been removed, superseded by the full-bleed
    .hero__scene background layer above. hero__grid is now effectively
    single-column (just hero__copy); no grid-template-columns split needed
    since there's no second grid item anymore. */
 
 /* ---- Selected Peaks ------------------------------------------------------ */
 
-/* Plain Warm Off-White base again — the Slate Blue Grey / cooler-tone
+/* Plain Warm Off-White base again: the Slate Blue Grey / cooler-tone
    idea moved down to the individual project cards instead (see
    .project-card's nth-child(odd/even) rule in components.css), which
    now alternate Slate Blue Grey and Warm Off-White card to card. A
@@ -714,7 +744,7 @@ section {
    uses, letting each card carry its own color.
 
    On top of that base, a topographic-map texture in fine Slate Blue
-   Grey lines — this is the very first section after the dark hero, so
+   Grey lines: this is the very first section after the dark hero, so
    it carries the dark-to-light handoff. Several passes here were
    reworked after direct feedback: plain concentric repeating-radial-
    gradient rings read as a mechanical target/bullseye; a hand-drawn
@@ -728,8 +758,7 @@ section {
    next.
 
    This version (assets/patterns/topo-pattern.svg) is generated at a
-   tall 1600x3600 aspect — close to how tall this section actually
-   tends to run once the project cards stack up — and background-size:
+   tall 1600x3600 aspect (close to how tall this section actually tends to run once the project cards stack up) and background-size:
    100% 100% stretches that single image to exactly fill the section,
    however tall it actually ends up being, rather than tiling or
    cropping it. No repeat, so no seam. A winding river valley runs down
@@ -738,7 +767,7 @@ section {
    near the figure's feet once the two sections sit back to back on
    the page. The valley drifts LEFT as it goes down (not side to side
    evenly), per direct feedback, since the hero scene's trees sit on
-   the right side of that image — keeping this section's own action
+   the right side of that image, keeping this section's own action
    biased left avoids the two competing for the same visual space.
    Lower ridge plateau plus several small, low-amplitude foothill
    bumps scattered between the main peaks, per direct feedback wanting
@@ -761,7 +790,7 @@ section {
      once shrunk; and the foothill count rose to 48 so low elevation
      numbers stay present across the map rather than everything reading
      as high ground. Peaks sit at absolute canvas positions rather than
-     offsets from the river centreline — at this scale the river occupies
+     offsets from the river centreline, at this scale the river occupies
      only the middle third, and river-relative placement left both edges
      of the canvas bare.
 
@@ -771,14 +800,14 @@ section {
      sits at exactly 0 and everything climbs from there, and a filled
      contour between -1 and 0.5 covers whatever hasn't risen out of the
      water yet. That's what makes the water widen where the valley opens
-     and pinch where it narrows — it's the shape of the low ground, not a
+     and pinch where it narrows: it's the shape of the low ground, not a
      line following a centreline.
 
      Three things are load-bearing for this. The floor width grows
      downstream (15 to 47 units) with smoothed noise on the banks, so
      they read as organic rather than as two parallel edges. The peak
      field is CARVED AWAY inside the floor, ramping back in across the
-     banks — without that, the gaussian tails of nearby peaks leak
+     banks, without that, the gaussian tails of nearby peaks leak
      elevation into the riverbed and break the zero region into
      disconnected puddles instead of one continuous watercourse. And
      (?v=15) the elevation field is gaussian smoothed before contouring.
@@ -790,7 +819,7 @@ section {
      the tracer interpolate a clean boundary, and it's applied to the
      field used for the lines as well as the fill so the contours stay
      consistent with the water they surround. The bank noise was also
-     slackened from sigma 25 to 55 — at the tighter value it wobbled on a
+     slackened from sigma 25 to 55, at the tighter value it wobbled on a
      short enough wavelength to read as ragged rather than meandering.
 
      ?v=16 fixes a break in the river near the top and adds the 0
@@ -799,7 +828,7 @@ section {
      enough that the blur lifted it over the fill threshold and pinched
      the region shut. The headwater half-width is now 30 units rather
      than 15. Connectivity is verified in the generator with
-     scipy.ndimage.label — one region, spanning every row, no strays —
+     scipy.ndimage.label (one region, spanning every row, no strays)
      rather than by eye, since a visual check already missed this once.
 
      The waterline is now also traced as its own contour and labelled 0,
@@ -811,7 +840,7 @@ section {
      ?v=17 adds peak markers and names the river. Peaks are open
      triangles with a rounded elevation beside them, the standard topo
      convention, drawn only for the tallest summits and skipped wherever
-     one would land near the channel or crowd a marker already placed —
+     one would land near the channel or crowd a marker already placed:
      a triangle sitting in the water reads as a mistake rather than as
      map detail. The river is labelled PEAKMAN RIVER, following the
      channel's own direction.
@@ -833,7 +862,7 @@ section {
      on the map; everything else is thin contour stroke, which is what
      makes that colour read as water rather than as more map furniture.
 
-     629KB. Still the heaviest single asset on the page — worth
+     629KB. Still the heaviest single asset on the page: worth
      revisiting before launch if page weight matters, where a coarser
      sampling grid would trade a little line smoothness for size.
 
@@ -878,7 +907,7 @@ section {
   background-repeat: no-repeat;
 }
 
-/* Lifts the section's real content above the map layer — without this,
+/* Lifts the section's real content above the map layer, without this,
    .peaks::before (positioned) would paint over the in-flow container. */
 .peaks > .container {
   position: relative;
@@ -886,21 +915,20 @@ section {
 }
 
 /* Groups the section header with the first (featured) project card
-   into one shared scroll-snap stop, per direct request — scrolling
+   into one shared scroll-snap stop, per direct request, scrolling
    into Selected Peaks should settle with "Selected Peaks" and
    Mountainside Millwork both visible together, centered as a single
    screen, rather than the header getting scrolled past on its own
    before the first card claims its own separate centered stop further
    down. Every project from here on (rendered into .peaks__track
-   instead — see renderProjects() in js/main.js) still centers
+   instead, see renderProjects() in js/main.js) still centers
    individually via .project-card's own scroll-snap-align: center
    (components.css); .project-card--featured opts out of that so it
    isn't ALSO its own separate stop directly underneath this one. */
 .peaks__intro-group {
   scroll-snap-align: center;
   scroll-snap-stop: always;
-  scroll-margin-top: 5rem;
-  /* Same --space-xl gap .peaks__track uses between its own cards — this
+  /* Same --space-xl gap .peaks__track uses between its own cards: this
      group's bottom edge (the first project card) needs the same
      breathing room before .peaks__track's first card (the second
      project) starts, now that the two are separate containers instead
@@ -910,8 +938,8 @@ section {
 
 /* This header sits in a card because plain text directly on the
    topo-pattern was getting lost in the contour lines behind it. It now
-   matches .project-card exactly — same Slate Blue Grey fill at 90%, same
-   Deep Navy 2px inset ring, same 0.5rem chamfer — rather than the
+   matches .project-card exactly, same Slate Blue Grey fill at 90%, same
+   Deep Navy 2px inset ring, same 0.5rem chamfer, rather than the
    off-white treatment it had while the project cards below it still
    alternated colours. Full width (no max-width) so it reads as the same
    size card as those; the readable line-length is capped on the
@@ -922,9 +950,26 @@ section {
    .project-card in components.css for why the ring can't be a real
    border on a chamfered shape, and why it's Soft Sand rather than the
    Deep Navy it used to be. */
+/* Two columns inside the card at 900px+: eyebrow and heading on the
+   left, intro on the right.
+
+   A single column of text can't fill this card. Even pushed to the
+   80-character WCAG maximum the measure only reaches ~787px of the
+   1040px available, so widening trades emptiness for unreadability.
+   Splitting the block is the only arrangement that fills the card
+   without breaking the measure, and it echoes the two-column project
+   cards directly below, so the section reads as one system.
+
+   align-items: end sits the intro's last line on the heading's
+   baseline-ish edge rather than floating it at the top, which is what
+   makes the two columns read as one block instead of two stacked
+   thoughts side by side. */
 .peaks__intro {
   position: relative;
   z-index: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
   margin-bottom: var(--space-xl);
   background: var(--color-border);
   color: var(--color-warm-off-white);
@@ -942,7 +987,7 @@ section {
   );
 }
 
-/* Identical inset geometry to .project-card::after — 2px inset with the
+/* Identical inset geometry to .project-card::after, 2px inset with the
    chamfer + 0.83px perpendicular correction on the diagonals. */
 .peaks__intro::after {
   content: "";
@@ -962,20 +1007,71 @@ section {
   );
 }
 
+/* Matches the lead treatment .section-heading p uses, Selected Peaks
+   doesn't use .section-heading, so it needs the sizes restating. See
+   that rule for why the type size carries this rather than the measure.
+
+   No max-width anymore: at 900px+ the grid column below is what bounds
+   the measure, and a cap on top of it would just reintroduce empty space
+   inside the column. */
 .peaks__intro p {
-  max-width: 34rem;
   margin-bottom: 0;
+  font-size: 1.2rem;
+  line-height: var(--lh-loose);
 }
 
-/* The hero's "View My Work" jumps here. Without a scroll-margin the
-   sticky header would sit over the top of the card on arrival — the same
-   offset .project-card already uses for its own scroll alignment. */
-#featured-project {
-  scroll-margin-top: 5rem;
+@media (min-width: 900px) {
+  /* Placed by grid rather than by wrapping the eyebrow and heading in a
+     div: the three elements are already siblings, and explicit
+     placement avoids adding markup that exists only to serve one
+     breakpoint.
+
+     The text column is the wider of the two: the heading is short and
+     large, the intro is small and long, so an even split would leave the
+     left column half empty while squeezing the right. */
+  .peaks__intro {
+    grid-template-columns: 1fr 1.15fr;
+    /* Row gap 0, column gap --space-lg. A single `gap` value applied
+       --space-lg to both axes, but that number was chosen to separate
+       the two COLUMNS, on the row axis it stacked on top of the
+       eyebrow's own 16px bottom margin, pushing the heading 56px clear
+       of the label it belongs to. The eyebrow's margin is the only
+       spacing that row needs. */
+    row-gap: 0;
+    column-gap: var(--space-lg);
+    align-items: start;
+  }
+
+  .peaks__intro .eyebrow {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .peaks__intro h2 {
+    grid-column: 1;
+    grid-row: 2;
+    margin-bottom: 0;
+  }
+
+  /* Row 2, beside the heading: not spanning both rows as it did before.
+     Spanning meant the intro started level with the eyebrow, so it
+     aligned with a small label rather than with the heading it actually
+     sits beside. Sharing row 2 puts the two tops on the same line, which
+     is the conventional label-above, headline-and-deck-beside
+     arrangement. */
+  .peaks__intro p {
+    grid-column: 2;
+    grid-row: 2;
+  }
 }
+
+/* The hero's "View My Work" jumps here. It needs no offset rule of its
+   own anymore: scroll-padding-top on html (global.css) applies to every
+   anchor in the document, which is precisely the fragility that made
+   this element need a hand-added rule in the first place. */
 
 /* A pinned/horizontal-scroll version of this track lived here (see the
-   comment on this section in index.html for the full story) — reverted
+   comment on this section in index.html for the full story), reverted
    because it fought the rest of the page's own vertical rhythm rather
    than adding to it. Back to a plain vertical stack, same shape as
    every other section's list. --space-xl (not the --space-lg used
@@ -995,7 +1091,7 @@ section {
    own light card background (components.css), so only the bare
    section-heading text needs the inherited light color here.
 
-   No padding-block override anymore — this section used to be trimmed
+   No padding-block override anymore: this section used to be trimmed
    down on its own (its solid Slate Blue Grey reading as too heavy at
    the generic `section` rule's original larger size), but every
    section now shares that same smaller padding (see `section` in this
@@ -1008,7 +1104,7 @@ section {
   color: var(--color-warm-off-white);
 }
 
-/* .capability-grid (below) is the previous four-boxed-card layout — left
+/* .capability-grid (below) is the previous four-boxed-card layout: left
    in place, unused, while .capability-timeline (design trial, per direct
    request) is what index.html/js/main.js actually render into now. Easy
    revert path: swap the class back in both files rather than rebuild
@@ -1031,7 +1127,7 @@ section {
   }
 }
 
-/* Horizontal timeline strip — same structure as .process-timeline below
+/* Horizontal timeline strip, same structure as .process-timeline below
    (vertical stack on mobile/tablet, single connecting line switching
    from a vertical rule on the left to a horizontal rule along the top
    once there's room for one row). Kept as its own class rather than
@@ -1054,7 +1150,7 @@ section {
   top: 0.5rem;
   bottom: 0.5rem;
   width: 2px;
-  /* Warm Off-White at low opacity, not --color-border — --color-border
+  /* Warm Off-White at low opacity, not --color-border, --color-border
      is tuned for the light sections (Process sits on the plain light
      background), and would barely register against this section's own
      Slate Blue Grey. */
@@ -1079,11 +1175,11 @@ section {
 
 /* Design trial #2: bento hover-expand row. Plain stacked column below
    1080px (hover doesn't really exist on touch, so there's no reason to
-   fight for space there) — becomes a fixed-height single row at 1080px+,
+   fight for space there): becomes a fixed-height single row at 1080px+,
    where each .capability-panel's own flex-grow transition (components.css)
    is what actually does the expanding. The fixed height (rather than
    auto) is what keeps the row from jumping vertically as descriptions
-   fade in/out inside each panel on hover — only the widths change. */
+   fade in/out inside each panel on hover: only the widths change. */
 .capability-bento {
   display: flex;
   flex-direction: column;
@@ -1095,7 +1191,7 @@ section {
     flex-direction: row;
     align-items: stretch;
     gap: var(--space-sm);
-    /* Trimmed from 22rem — combined with the icon now filling the top
+    /* Trimmed from 22rem, combined with the icon now filling the top
        of each panel (components.css), the taller height was leaving
        more empty space than content, which read as plain/bare
        (confirmed in testing). */
@@ -1110,7 +1206,7 @@ section {
    narrow columns it needed were squeezing every description into a
    cramped four-line block. Full-width rows separated by hairline rules
    read like a magazine contents page, give each step real room, and
-   scale down to one column without changing shape — the previous layout
+   scale down to one column without changing shape: the previous layout
    had to switch orientation entirely at 960px.
 
    The rule between rows comes from each step's own border-top
@@ -1118,14 +1214,14 @@ section {
    there's nothing to keep in sync when steps are added or removed. */
 /* Continues the Selected Peaks map through this section, so the two read
    as one landscape with What I Do's solid blue block sitting over the
-   middle of it — the match-book effect. topo-pattern-process.svg is a
+   middle of it: the match-book effect. topo-pattern-process.svg is a
    real continuation rather than a second map: the river's drift and
    meander phase carry on from where the first one stopped, and it enters
    at 33.5% of the width, exactly the fraction the first map leaves off
    at. Both use background-size: 100% 100%, so that horizontal percentage
    is what aligns; the differing vertical stretch doesn't affect it.
 
-   Same structure as .peaks — a pseudo-element rather than a background
+   Same structure as .peaks: a pseudo-element rather than a background
    on the section itself, because `opacity` would otherwise fade the
    section's own text along with the map. Kept at the same 0.5 so both
    maps sit at equal weight; a difference here would break the illusion
@@ -1164,25 +1260,62 @@ section {
 }
 
 /* The section heading gets the same card, for the same reason the
-   Selected Peaks heading did — text directly on the contours is hard to
+   Selected Peaks heading did: text directly on the contours is hard to
    read, and it's the same map underneath. */
+/* Full-width card, matching the step cards below it and the Selected
+   Peaks heading. Capping it to its content width was tried and reverted:
+    the narrower card read worse against the full-width cards beneath
+   it than the empty right-hand strip did. */
 #process .section-heading {
   position: relative;
   z-index: 0;
   max-width: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
   padding: var(--space-card);
   color: var(--color-warm-off-white);
   --card-chamfer: 0.5rem;
   filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.3));
 }
 
-#process .section-heading > * {
-  max-width: 40rem;
+/* Same two-column split as .peaks__intro: identical card, identical
+   problem: a single column of readable text leaves about a third of it
+   empty, and widening the measure past the WCAG 80-character maximum
+   isn't a way out. See .peaks__intro for the full reasoning.
+
+   Matching the two matters beyond each section individually: both cards
+   sit on the same continuous topo map, so a different internal layout
+   between them would read as inconsistency rather than variety. */
+@media (min-width: 900px) {
+  #process .section-heading {
+    grid-template-columns: 1fr 1.15fr;
+    row-gap: 0;
+    column-gap: var(--space-lg);
+    align-items: start;
+  }
+
+  #process .section-heading .eyebrow {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  #process .section-heading h2 {
+    grid-column: 1;
+    grid-row: 2;
+    margin-bottom: 0;
+  }
+
+  #process .section-heading p {
+    grid-column: 2;
+    grid-row: 2;
+    max-width: none;
+  }
 }
 
 /* Ring layer, in the full outer shape. Shape lives on pseudo-elements
    rather than the heading itself because clip-path is applied after
-   filter — a chamfer on the element would clip its own shadow away.
+   filter: a chamfer on the element would clip its own shadow away.
    Soft Sand for the same reason as .process-step: these are navy cards,
    so the Deep Navy ring used on the site's light-filled cards would
    disappear into the fill. */
@@ -1204,7 +1337,7 @@ section {
   );
 }
 
-/* Fill, inset 2px. Matches the step cards' own 80% — a heading card at
+/* Fill, inset 2px. Matches the step cards' own 80%: a heading card at
    full opacity next to translucent ones would read as a different
    component. */
 #process .section-heading::after {
@@ -1227,7 +1360,7 @@ section {
 
 /* ---- Tools and Skills -------------------------------------------------------- */
 
-/* Same Slate Blue Grey as What I Do, per direct request — .skill-group
+/* Same Slate Blue Grey as What I Do, per direct request, .skill-group
    keeps its own light card background (components.css, same pattern
    as .capability-card there), so only the bare section-heading text
    needs the inherited light color here. */
@@ -1236,44 +1369,53 @@ section {
   color: var(--color-warm-off-white);
 }
 
-/* Project filter row above the skill groups. Wraps rather than scrolls —
+/* Project filter row above the skill groups. Wraps rather than scrolls:
    five short buttons fit comfortably on a phone across two lines, and a
    horizontal scroller would hide options off-screen with no affordance
    telling you they're there. */
 .skills-legend {
   display: flex;
   flex-wrap: wrap;
-  /* Nudged up with the buttons themselves — at 0.5rem the larger
+  /* Nudged up with the buttons themselves, at 0.5rem the larger
      controls were nearly touching. */
   gap: 0.6rem;
   margin-bottom: var(--space-md);
 }
 
-/* Editorial ruled list, deliberately the same structure as
-   .process-timeline directly above it: one full-width row per group,
-   hairline rules between, label on the left and content on the right.
+/* Editorial ruled list. Replaced five boxed cards: the page went
+   straight from Process (which had just dropped its own boxes) into
+   another set of panels, and section → card → chip was three levels of
+   containment for what is really a labelled list.
 
-   Replaced five boxed cards. Three reasons, all visible in testing:
-   the page went straight from Process (which had just dropped its own
-   boxes) into another set of panels, breaking the rhythm; section → card
-   → chip was three levels of containment for what is really just a
-   labelled list; and the five cards were flat empty rectangles in a page
-   where every other card carries artwork or colour, so they read as
-   unfinished rather than restrained.
+   One column on narrow screens, TWO categories per row at 1080px+.
+   Single-column rows left roughly 340px of empty space to the right of
+   the shortest chip group while the rule ran the full container width,
+   which drew attention to the gap rather than hiding it. Pairing the
+   categories uses that width and roughly halves the section's height.
 
-   Rules come from each row's own border-top plus this container's
-   border-bottom — nothing to keep in sync when a group is added or
-   removed, same as Process. */
+   Rules come from each group's own border-top rather than a divider
+   element, so nothing needs syncing when a group is added or removed.
+   The container's border-bottom closes the list off. */
 .skills-grid {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   border-bottom: 1px solid rgba(248, 246, 240, 0.22);
+}
+
+@media (min-width: 1080px) {
+  .skills-grid {
+    grid-template-columns: 1fr 1fr;
+    /* Column gap only. A row gap would break the rules into separate
+       floating segments with space between them, where the point is a
+       continuous ruled list. */
+    column-gap: var(--space-xl);
+  }
 }
 
 /* ---- About ---------------------------------------------------------------------- */
 
 /* .about__inner (a plain 46rem centred text column) was the whole About
-   section until this pass — the only section left with no layout of its
+   section until this pass: the only section left with no layout of its
    own, and visibly the plainest block on the page. Kept as an unused rule
    only because privacy.html may still reference it; the section itself
    now uses .about__grid below. */
@@ -1282,7 +1424,7 @@ section {
 }
 
 /* Third and last stretch of the continuous topo map. Same structure and
-   the same 0.5 opacity as .peaks and #process — Tools & Skills sits
+   the same 0.5 opacity as .peaks and #process: Tools & Skills sits
    between Process and here as a solid blue block, so the landscape
    surfaces, hides, and surfaces again. The map enters this section at
    28.2% of the width, exactly where the Process map leaves off. */
@@ -1308,7 +1450,7 @@ section {
   z-index: 1;
 }
 
-/* Photo alongside the story — the pattern that came up in essentially
+/* Photo alongside the story: the pattern that came up in essentially
    every portfolio About example researched. Single column on mobile with
    the photo first, becoming a two-column split at 860px.
 
@@ -1325,7 +1467,7 @@ section {
 
 @media (min-width: 860px) {
   .about__grid {
-    /* 20rem, up from 18rem — the photo was reading as small against a
+    /* 20rem, up from 18rem: the photo was reading as small against a
        text column several times its width. */
     grid-template-columns: 20rem 1fr;
     gap: var(--space-xl);
@@ -1400,6 +1542,20 @@ section {
   margin-top: var(--space-lg);
 }
 
+/* Same override the hero already applies to its own secondary CTA, for
+   the same reason: .btn--secondary is written for a light background
+   (Deep Navy text and border), and this card is Deep Navy. On it the
+   Résumé button was rendering at 1.44:1: effectively invisible.
+
+   The wrapper is included as well as the button because .btn__ring is a
+   sibling of the button, not a child, so it takes its stroke from the
+   wrapper's colour rather than the button's. */
+.about__actions .btn--secondary,
+.about__actions .btn__wrap--secondary {
+  color: var(--color-warm-off-white);
+  border-color: var(--color-warm-off-white);
+}
+
 /* ---- Contact / Footer ------------------------------------------------------------ */
 
 /* Slate Blue Grey now (was --color-inverse-bg, i.e. Deep Navy), per
@@ -1413,47 +1569,76 @@ section {
   color: var(--color-inverse-text);
 }
 
+/* .contact__inner is no longer used by the section: kept only in case
+   privacy.html or 404.html reference it. The section uses .contact__grid
+   below. */
 .contact__inner {
   max-width: 40rem;
 }
 
-/* Status, response time, location. A row on desktop, stacking on narrow
-   screens. Dot separators between items come from the ::before below
-   rather than being typed into the markup, so nothing needs re-editing
-   if an item is added or removed. */
+/* One column on mobile (pitch, then form), two at 900px+. The pitch
+   column is slightly narrower than the form: the form has fixed-width
+   controls that look stretched past about 30rem, whereas the copy is
+   happy in a narrow measure. */
+.contact__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .contact__grid {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    gap: var(--space-xl);
+  }
+}
+
+/* Caps the measure independently of the column, so the intro copy stays
+   readable rather than running the column's full width. */
+.contact__intro {
+  max-width: 34rem;
+}
+
+/* Stacked, one fact per line.
+
+   These were previously an inline row separated by dots. In a column
+   that narrow the row wrapped, and CSS can't tell which item lands at
+   the start of a wrapped line, so the separator before it rendered as a
+   stray leading dot, reading as a typo. I'd noted that as "a small cost"
+   when writing it; seeing it, it isn't.
+
+   Stacking removes the problem rather than working around it, drops the
+   separators entirely, and fills vertical space in a column that was
+   already shorter than the form beside it. */
 .contact__facts {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem var(--space-md);
+  flex-direction: column;
+  gap: 0.4rem;
   margin-top: var(--space-md);
   font-size: var(--fs-small);
   /* Soft Sand on its own only reaches 4.16:1 against this section's
-     Slate Blue Grey — under the 4.5 needed at this text size. Blended
+     Slate Blue Grey: under the 4.5 needed at this text size. Blended
      30% toward Warm Off-White it clears at 4.72:1 while staying clearly
      quieter than the status line above it. */
   color: color-mix(in srgb, var(--color-soft-sand) 70%, var(--color-warm-off-white));
 }
 
 .contact__facts li {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-/* Separator before every item except the first. Hidden when the list
-   wraps onto its own lines would be ideal, but a leading dot on a
-   wrapped row is a small cost for not hard-coding separators. */
-.contact__facts li + li::before {
-  content: "";
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.5;
+/* Keeps the two supporting facts aligned with the status text above,
+   which is indented by its own dot and gap. Without this they'd sit
+   flush left and the group would look ragged. */
+.contact__facts li:not(.contact__status) {
+  padding-inline-start: calc(8px + 0.5rem);
 }
 
 /* The status line reads brighter than the two supporting facts beside
-   it — it's the one a visitor is actually scanning for. */
+   it: it's the one a visitor is actually scanning for. */
 .contact__status {
   color: var(--color-warm-off-white);
 }
@@ -1465,7 +1650,7 @@ section {
   background: var(--color-accent);
   flex-shrink: 0;
   /* Soft halo, so the dot reads as a live indicator rather than a
-     bullet point. Static — a pulsing dot in a section this quiet would
+     bullet point. Static: a pulsing dot in a section this quiet would
      pull attention away from the CTAs right below it. */
   box-shadow: 0 0 0 3px rgba(252, 163, 17, 0.2);
 }
@@ -1473,14 +1658,17 @@ section {
 .contact__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
+  /* Tighter than --space-md/--space-lg were: these now sit inside the
+     left column as one group with the facts and email, rather than
+     floating alone under the form where they needed the separation. */
+  gap: 0.75rem;
+  margin-top: var(--space-md);
 }
 
-/* Plain-text fallback under the buttons. Deliberately quiet — it's
+/* Plain-text fallback under the buttons. Deliberately quiet: it's
    insurance for anyone a mailto fails for, not a competing CTA. */
 .contact__direct {
-  margin-top: var(--space-md);
+  margin-top: var(--space-sm);
   margin-bottom: 0;
   font-size: var(--fs-small);
   /* Same blend and same reason as .contact__facts above. */
@@ -1500,10 +1688,213 @@ section {
   padding-block: var(--space-lg);
 }
 
+/* .site-footer__inner is unused now: the footer uses __groups and __bar
+   below. Left in case privacy.html or 404.html reference it. */
 .site-footer__inner {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+}
+
+/* Brand column only slightly wider than the link columns.
+
+   It was 1.6fr, which made it the WIDEST column while holding the least
+   content: a logo, one line of text and a status, against five links
+   next to it. In a 1200px container that came out at 476px versus 298,
+   and the surplus rendered as an empty block under the logo. At 1.15fr
+   it's 391px against 340: still first among equals, without the hole. */
+.site-footer__groups {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 720px) {
+  .site-footer__groups {
+    grid-template-columns: 1.15fr 1fr 1fr;
+    gap: var(--space-lg);
+  }
+}
+
+.site-footer__brand p {
+  margin: var(--space-sm) 0 0;
+  font-size: var(--fs-small);
+  max-width: 22rem;
+}
+
+.site-footer__status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  /* Reuses .contact__status-dot, so the indicator is defined once and
+     both places stay in step. */
+}
+
+.site-footer__heading {
+  font-family: var(--font-display);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-soft-sand);
+  margin: 0 0 var(--space-sm);
+}
+
+.site-footer__group ul {
+  display: flex;
+  flex-direction: column;
+  /* No gap: each link's own 0.5rem padding-block already separates the
+     rows and carries the ~40px tap target. A gap on top of that was
+     stacking air onto space that already existed. */
+  gap: 0;
+}
+
+.site-footer__group a,
+.site-footer__bar-links a {
+  display: inline-block;
+  font-size: var(--fs-small);
+  /* Vertical padding takes these from roughly 20px tall to ~40px, close
+     to the 44px touch-target guideline. The previous footer links had no
+     padding at all and were under half the recommended size: the tap
+     area is the whole point here, not the visual change. */
+  padding-block: 0.5rem;
+  text-decoration-color: transparent;
+  transition: color var(--transition-base), text-decoration-color var(--transition-base);
+}
+
+.site-footer__group a:hover,
+.site-footer__bar-links a:hover {
+  color: var(--color-accent);
+  text-decoration-color: var(--color-accent);
+}
+
+/* Bottom bar: legal and utility, separated from the content groups by a
+   rule. Legal links are conventionally looked for here rather than
+   alongside section navigation. */
+.site-footer__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  /* --space-md, not --space-lg: this already has its own padding-top
+     above the rule, so the two were compounding into a ~64px gap. */
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(248, 246, 240, 0.15);
+}
+
+.site-footer__copyright {
+  margin: 0;
+  font-size: var(--fs-small);
+  color: var(--color-soft-sand);
+}
+
+.site-footer__bar-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* Back to top reads as a control, not another text link. It was styled
+   identically to Privacy beside it, which meant the item that performs
+   an action looked the same as the one that just navigates.
+
+   Chamfered like every other control on the site, which rules out a real
+   border: a stroke is traced against the original rectangle and then
+   cut at an angle it was never drawn to fit. Same inset-patch build used
+   elsewhere: this element's background is the ring, ::after covers all
+   but a 1px margin.
+
+   The ::after fill is the footer's own Deep Navy, so the control reads
+   as outlined rather than filled. That couples it to the footer's
+   background: if that ever changes, this needs to change with it. */
+/* Selector carries the .site-footer__bar-links ancestor for specificity.
+   The shared footer-link rule above is (0,1,1) and sets
+   display: inline-block; a bare .site-footer__top is (0,1,0) and LOST,
+   so the button rendered inline-block, the SVG became a block-level
+   child, and the chevron stacked above the label instead of beside it.
+
+   Typography matches the site's other buttons rather than the body text
+   it inherited: display face, uppercase, letter-spaced. That mismatch
+   was the main reason it read as a stray element rather than part of
+   the same system. */
+.site-footer__bar-links .site-footer__top {
+  position: relative;
+  z-index: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  font-family: var(--font-display);
+  font-size: var(--fs-small);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-warm-off-white);
+  background: rgba(248, 246, 240, 0.4);
+  --card-chamfer: 0.4rem;
+  clip-path: polygon(
+    var(--card-chamfer) 0%,
+    calc(100% - var(--card-chamfer)) 0%,
+    100% var(--card-chamfer),
+    100% calc(100% - var(--card-chamfer)),
+    calc(100% - var(--card-chamfer)) 100%,
+    var(--card-chamfer) 100%,
+    0% calc(100% - var(--card-chamfer)),
+    0% var(--card-chamfer)
+  );
+}
+
+/* 1px inset, so the diagonals shift by 1px * (√2 − 1) ≈ 0.41px: the
+   perpendicular offset for a 45° edge, same derivation used everywhere
+   this technique appears. */
+.site-footer__bar-links .site-footer__top::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--color-inverse-bg);
+  clip-path: polygon(
+    calc(var(--card-chamfer) + 0.41px) 1px,
+    calc(100% - var(--card-chamfer) - 0.41px) 1px,
+    calc(100% - 1px) calc(var(--card-chamfer) + 0.41px),
+    calc(100% - 1px) calc(100% - var(--card-chamfer) - 0.41px),
+    calc(100% - var(--card-chamfer) - 0.41px) calc(100% - 1px),
+    calc(var(--card-chamfer) + 0.41px) calc(100% - 1px),
+    1px calc(100% - var(--card-chamfer) - 0.41px),
+    1px calc(var(--card-chamfer) + 0.41px)
+  );
+  transition: background var(--transition-base);
+}
+
+.site-footer__bar-links .site-footer__top-icon {
+  width: 0.9em;
+  height: 0.9em;
+  flex-shrink: 0;
+  transition: transform var(--transition-base);
+}
+
+.site-footer__bar-links .site-footer__top:hover {
+  background: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* The chevron lifts on hover: a small nod to what the control does,
+   and the kind of micro-interaction that reads as care rather than
+   decoration. Only the icon moves; the label stays put so the button
+   doesn't appear to wobble. */
+.site-footer__bar-links .site-footer__top:hover .site-footer__top-icon {
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-footer__bar-links .site-footer__top-icon {
+    transition: none;
+  }
+
+  .site-footer__bar-links .site-footer__top:hover .site-footer__top-icon {
+    transform: none;
+  }
 }
 
 @media (min-width: 720px) {
@@ -1514,6 +1905,8 @@ section {
   }
 }
 
+/* .site-footer__links is unused now, replaced by the labelled
+   .site-footer__group lists above. */
 .site-footer__links {
   display: flex;
   flex-wrap: wrap;

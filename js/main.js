@@ -7,7 +7,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   // Each init runs independently: if one throws (bad data, a missing
   // container, etc.) it's logged to the console but does not stop the
-  // others from running — a single failure should never blank the page.
+  // others from running: a single failure should never blank the page.
   safeRun(renderProjects);
   safeRun(renderCapabilities);
   safeRun(renderProcessSteps);
@@ -26,8 +26,8 @@ document.addEventListener("DOMContentLoaded", () => {
   safeRun(setupCapabilityMountains);
   // Must run after renderProjects (measures the cards it creates).
   safeRun(setupProjectScrollFocus);
-  safeRun(setupProofChipRows);
   safeRun(setupContactForm);
+  safeRun(setupFooterYear);
 });
 
 function safeRun(fn) {
@@ -47,13 +47,13 @@ function renderProjects() {
 
   // The first project (currently Mountainside Millwork, featured: true)
   // renders into its own slot inside .peaks__intro-group now, not into
-  // .peaks__track with the rest — grouped with the "Selected Peaks"
+  // .peaks__track with the rest, grouped with the "Selected Peaks"
   // header so the two can share one scroll-snap stop (see the comment
   // on this section in index.html). Everything from index 1 onward
   // still renders as a plain stack into .peaks__track.
   //
   // isAlt is passed by each project's ABSOLUTE position in the full
-  // projects array, not by DOM sibling order — with the first project
+  // projects array, not by DOM sibling order, with the first project
   // now living in a separate container from the rest, nth-child-based
   // alternating (the old approach) would've silently recounted "1st,
   // 2nd, 3rd..." from whichever project happens to be first inside
@@ -72,34 +72,9 @@ function renderProjects() {
 }
 
 /*
-  Orders proof-point chips longest-first, so the wrapped rows taper from
-  widest at the top down to narrowest at the bottom. Paired with
-  justify-content: center on the list (components.css), that's what gives
-  the block its centred, tapering shape rather than a ragged right edge.
-
-  Flexbox packs greedily in DOM order and can't reorder by size on its
-  own — CSS has no way to measure how wide a chip will be. Sorting the
-  source order is what actually controls which chips land on which line.
-
-  Character count as the proxy for width: the chips all share one font,
-  size and padding, so length tracks rendered width closely enough. The
-  alternative — measuring real widths in the DOM after render and
-  assigning flex `order` — is more precise but adds a layout-read pass
-  and a runtime dependency for something purely cosmetic.
-
-  Sorts a copy. Sorting in place would mutate the projects array in
-  js/data.js, so any later render would start from an already-sorted
-  list — harmless here, but the kind of shared-state bug that's hard to
-  spot once something else reads that data.
-*/
-function sortChipsWidestFirst(points) {
-  return [...points].sort((a, b) => b.length - a.length);
-}
-
-/*
   One project can be marked `featured: true` in js/data.js (currently
   Mountainside Millwork, the one real client project) to get the full-width
-  "strongest proof piece" treatment — see .project-card--featured in
+  "strongest proof piece" treatment, see .project-card--featured in
   css/components.css. Everything else about the markup is identical between
   featured and standard cards; the only differences are the modifier class,
   a badge sourced from the project's own first tag (no invented copy), and
@@ -109,12 +84,12 @@ function sortChipsWidestFirst(points) {
 function renderProjectCard(project, index) {
   const isFeatured = project.featured === true;
   const isAlt = index % 2 === 1;
-  // .reveal restored — cards went through a phase where they lived
+  // .reveal restored: cards went through a phase where they lived
   // inside a pinned/horizontal-scroll track (removed, see the comment
   // on this section in index.html) whose own scroll-scrub replaced this
   // as each card's motion. Back in normal vertical flow, the same
   // generic reveal-on-scroll every other section uses (setupScrollReveal()
-  // in this file) is what fades/settles each card in — no separate
+  // in this file) is what fades/settles each card in: no separate
   // image-specific motion on top of that anymore (there used to be a
   // slow zoom-on-reveal here; removed per direct feedback, see
   // css/components.css).
@@ -127,7 +102,7 @@ function renderProjectCard(project, index) {
     .filter(Boolean)
     .join(" ");
   // Real per-project dimensions from js/data.js (checked directly
-  // against each file, not guessed) — these five screenshots range
+  // against each file, not guessed): these five screenshots range
   // from nearly-square to 1.64:1 wide, so a single shared width/height
   // guess doesn't describe any of them accurately. Matching the actual
   // file matters here specifically because .project-card__media img
@@ -139,7 +114,7 @@ function renderProjectCard(project, index) {
   const imageHeight = project.imageHeight;
   // Featured card used to get an extra badge overlaid on its image
   // (sourced from the project's own first tag) and every card had a
-  // "Project notes in progress" status line — both dropped per direct
+  // "Project notes in progress" status line, both dropped per direct
   // feedback (circled in a screenshot as things to remove). The badge
   // markup and the .project-card__status/.project-card__status-dot
   // CSS in css/components.css are gone along with these.
@@ -161,136 +136,66 @@ function renderProjectCard(project, index) {
           <p class="project-card__meta">${project.tags.join(" · ")}</p>
           <p>${project.description}</p>
           <ul class="project-card__proof-chips">
-            ${sortChipsWidestFirst(project.proofPoints)
+            ${project.proofPoints
               .map((point) => `<li>${point}</li>`)
               .join("")}
           </ul>
-          <!-- Real case study/project-notes pages don't exist yet (see
-               TODO.md) — this is a genuine placeholder, disabled rather
-               than a dead link to "#", matching the same honest pattern
-               already used for the About section's Resume button.
-               Reuses the hero/nav's primary waypoint button exactly
-               (same classes, same ring mechanism) at a smaller size —
-               see .project-card__cta.btn--waypoint.btn--primary in
-               css/components.css — rather than the plain text link this
-               used a moment ago, per direct request. setupWaypointRings()
-               in this file already queries every .btn__wrap generically,
-               so this gets the same real-pixel-measured ring as the
-               hero/nav buttons for free. -->
-          <span class="btn__wrap btn__wrap--primary project-card__cta-wrap">
-            <button
+          ${renderProjectCta(project)}
+        </div>
+      </article>`;
+}
+
+/*
+  A project's CTA, in one of two states depending on whether there is
+  somewhere real to send people.
+
+  With a `liveUrl` (js/data.js) it's a genuine external link. Without one
+  it stays the disabled-button placeholder every card used to carry: the
+  case-study/project-notes pages don't exist yet (see TODO.md), and a
+  disabled control is the honest way to say so: the same pattern as the
+  About section's Resume button. A dead href="#" would look identical to a
+  working link right up until someone clicks it.
+
+  Both branches use the same .btn__wrap markup and the same
+  hero/nav waypoint button classes at the smaller card size (see
+  .project-card__cta.btn--waypoint.btn--primary in css/components.css).
+  setupWaypointRings() queries every .btn__wrap generically, so either
+  branch gets the same real-pixel-measured ring for free.
+
+  rel="noopener" is what actually matters with target="_blank", without
+  it the opened page gets a window.opener handle back to this one.
+  "noreferrer" is included alongside it as the conventional pairing.
+  (Modern browsers imply noopener for target="_blank", but stating it
+  costs nothing and doesn't depend on which browser is reading it.)
+
+  The "(opens in a new tab)" note is visually hidden rather than dropped:
+  a sighted user finds out when the tab appears, which is not a cue a
+  screen-reader user gets. It sits inside the <a> so it's read as part of
+  the link's own accessible name.
+*/
+function renderProjectCta(project) {
+  const inner = project.liveUrl
+    ? `<a
+              href="${project.liveUrl}"
+              class="btn btn--primary btn--waypoint project-card__cta"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ${project.ctaLabel}<span class="visually-hidden"> (opens in a new tab)</span>
+            </a>`
+    : `<button
               type="button"
               class="btn btn--primary btn--waypoint btn--disabled project-card__cta"
               disabled
               title="Project notes page coming soon"
             >
               ${project.ctaLabel}
-            </button>
+            </button>`;
+
+  return `<span class="btn__wrap btn__wrap--primary project-card__cta-wrap">
+            ${inner}
             <svg class="btn__ring" aria-hidden="true" focusable="false" preserveAspectRatio="none"><path></path></svg>
-          </span>
-        </div>
-      </article>`;
-}
-
-/* ---- Selected Peaks: taper the proof-chip rows ----------------------------- */
-
-/*
-  Makes each card's proof-point chips wrap into rows that get narrower
-  going down, instead of a ragged block.
-
-  sortChipsWidestFirst() gets most of the way there at render time, but it
-  can't get all the way: it orders by character count, and a row of three
-  medium chips packs tighter than a row of two long ones, so the LAST row
-  sometimes ends up the widest. That's exactly what happened on
-  Mountainside Millwork and ValorBot — the character-count estimate
-  predicted ValorBot would taper and it didn't.
-
-  So this measures what actually rendered. It re-packs using real widths,
-  and if the rows aren't already descending it reorders whole rows
-  widest-first and lets them re-wrap.
-
-  Reordering ROWS rather than individual chips is the important part: the
-  chips in a row are known to fit on one line together, so moving the
-  group keeps that true. Reordering chips individually would just produce
-  a different arbitrary packing.
-
-  No forced line breaks (spacer elements with flex-basis: 100%) — the
-  reflowed order is verified to descend before it's committed, and if it
-  doesn't the DOM is left exactly as it was. Better a ragged block than
-  hard-coded breaks that overflow at some other width.
-*/
-function setupProofChipRows() {
-  const lists = Array.from(document.querySelectorAll(".project-card__proof-chips"));
-  if (!lists.length) return;
-
-  let ticking = false;
-  function apply() {
-    ticking = false;
-    lists.forEach(taperChipRows);
-  }
-
-  apply();
-  // Chip widths don't change on resize, but the container's does, so the
-  // packing does too — a layout that tapers at one width may not at
-  // another.
-  window.addEventListener("resize", () => {
-    if (ticking) return;
-    ticking = true;
-    window.requestAnimationFrame(apply);
-  });
-}
-
-function taperChipRows(list) {
-  const chips = Array.from(list.children);
-  // Two chips can only ever be one or two rows, and a single row is
-  // trivially "descending" — nothing to arrange.
-  if (chips.length < 3) return;
-
-  const styles = window.getComputedStyle(list);
-  const gap = parseFloat(styles.columnGap || styles.gap) || 0;
-  const containerWidth = list.clientWidth;
-  if (!containerWidth) return;
-
-  const widths = new Map(chips.map((chip) => [chip, chip.getBoundingClientRect().width]));
-
-  // Mirrors how flexbox itself wraps: fill the current line until the next
-  // item doesn't fit, then start a new one.
-  function pack(order) {
-    const rows = [];
-    let current = [];
-    let width = 0;
-
-    order.forEach((chip) => {
-      const chipWidth = widths.get(chip);
-      // 0.5px tolerance: sub-pixel layout means an exact comparison can
-      // disagree with what the browser actually did.
-      if (current.length && width + gap + chipWidth > containerWidth + 0.5) {
-        rows.push({ items: current, width });
-        current = [];
-        width = 0;
-      }
-      width += (current.length ? gap : 0) + chipWidth;
-      current.push(chip);
-    });
-
-    if (current.length) rows.push({ items: current, width });
-    return rows;
-  }
-
-  const descends = (rows) =>
-    rows.every((row, i) => i === 0 || row.width <= rows[i - 1].width + 0.5);
-
-  const rows = pack(chips);
-  if (rows.length < 2 || descends(rows)) return;
-
-  const reordered = [...rows]
-    .sort((a, b) => b.width - a.width)
-    .flatMap((row) => row.items);
-
-  // Only commit if the new order genuinely re-wraps into descending rows.
-  if (!descends(pack(reordered))) return;
-
-  reordered.forEach((chip) => list.appendChild(chip));
+          </span>`;
 }
 
 /* ---- Selected Peaks: scroll-focus the card nearest the viewport centre ----- */
@@ -315,7 +220,7 @@ function taperChipRows(list) {
   That threshold was tuned to its own 520px demo box; against a real
   viewport with cards this tall it would leave dead stretches where
   nothing is active, and could light two at once. This picks the single
-  nearest card instead, then applies a proximity limit — so there is
+  nearest card instead, then applies a proximity limit, so there is
   always at most one active card, and it stays active until another one
   is genuinely closer.
 */
@@ -328,7 +233,7 @@ function setupProjectScrollFocus() {
 
   // Scroll-linked motion nobody asked for. Bailing out before adding the
   // class leaves every card at full presence permanently, which is the
-  // correct reduced-motion result — not a dimmed section that never
+  // correct reduced-motion result: not a dimmed section that never
   // resolves.
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -371,7 +276,7 @@ function setupProjectScrollFocus() {
   }
 
   function onScroll() {
-    // Coalesces scroll bursts into one update per frame — scroll fires
+    // Coalesces scroll bursts into one update per frame: scroll fires
     // far more often than the screen repaints, so doing this per event
     // would be layout reads the browser only ever paints once.
     if (ticking) return;
@@ -392,20 +297,20 @@ function renderCapabilities() {
   const grid = document.querySelector("[data-capabilities-grid]");
   if (!grid) return;
 
-  // Design trial #2: bento-style hover-expand panels — four equal-width
+  // Design trial #2: bento-style hover-expand panels: four equal-width
   // panels in one row at desktop; hovering (or focusing, for keyboard
   // users) one grows it via flex-grow while the description underneath
   // fades/expands into view, the others staying visible but narrower.
   // Collapsed by default so the row reads clean at a glance, per the
   // researched pattern of "stays uncluttered at rest, rewards actually
   // engaging with it." tabindex="0" is what lets :focus-within trigger
-  // the same reveal for keyboard users, not just mouse hover — global
+  // the same reveal for keyboard users, not just mouse hover: global
   // focus-visible styling (global.css) already covers plain [tabindex]
   // elements, so no extra focus-ring CSS is needed here.
   //
   // Trial #1 (.capability-timeline/.capability-step, components.css +
   // layout.css) and the original .capability-card/.capability-grid are
-  // both left in place, unused — reverting to either is just swapping
+  // both left in place, unused, reverting to either is just swapping
   // the classes here and in index.html back, not rebuilding styles.
   grid.innerHTML = capabilities
     .map(
@@ -427,7 +332,7 @@ function renderCapabilities() {
   same file (assets/patterns/capability-mountains.svg, set in components.css
   on .capability-panel::after), but sized and positioned so together they
   read as ONE continuous mountain range spanning the whole row, not four
-  separate repeating crops — per direct request, referencing the hero
+  separate repeating crops: per direct request, referencing the hero
   scene's own mountain illustration style.
 
   The trick: size the image (via --mtn-size) to the FULL ROW's width, not
@@ -443,7 +348,7 @@ function renderCapabilities() {
   offset-from-the-left shifts too, for the whole ~450ms of that animation,
   not just at the very start and end. ResizeObserver is what makes the
   slices visibly pan/shift DURING the hover transition (matching what was
-  asked for) instead of just jumping between two static positions — it
+  asked for) instead of just jumping between two static positions: it
   fires on every layout-affecting resize of an observed element, which a
   flex-grow transition produces continuously, frame by frame, as it runs.
 */
@@ -467,7 +372,7 @@ function setupCapabilityMountains() {
       // true ratio, letting the image run taller than the panel, and
       // the vertical percentage below picks which band of it shows.
       //
-      // 15%, down from 30% — a smaller percentage slides the image DOWN
+      // 15%, down from 30%: a smaller percentage slides the image DOWN
       // within each panel (it shows a band nearer the image's own top).
       // At 30% the summit was landing just above the visible band and
       // getting clipped; 15% brings the peak fully into frame with a
@@ -507,7 +412,7 @@ function renderProcessSteps() {
   // rest. Replaced a six-column timeline whose narrow columns squeezed
   // every description into a cramped block, and whose connecting route
   // line was dropped per direct request. The circular .route-marker
-  // badge went with it — a number set as plain type suits an editorial
+  // badge went with it: a number set as plain type suits an editorial
   // list, where a filled badge would read as a leftover UI chip.
   timeline.innerHTML = processSteps
     .map(
@@ -528,7 +433,7 @@ function renderSkillGroups() {
   if (!grid) return;
 
   // Each skill's `projects` entries are matched against real project
-  // titles by string. A typo wouldn't throw — the skill would just
+  // titles by string. A typo wouldn't throw: the skill would just
   // silently never match any filter, which is exactly the kind of bug
   // that survives for months. Surfacing it in the console keeps the
   // failure loud without breaking the render.
@@ -565,7 +470,7 @@ function renderSkillGroups() {
   spaces but no pipes, and this avoids escaping quotes inside an HTML
   attribute.
 
-  The visible project count was removed per direct request — the chips
+  The visible project count was removed per direct request: the chips
   read cleaner without it, and selecting a project in the legend already
   shows which skills it involved, which is the same evidence shown a
   clearer way. The count survives in the aria-label, since a screen
@@ -614,7 +519,7 @@ function renderSkillsLegend() {
   Wires the legend to the skill chips.
 
   Click to pin, hover to preview. The hover preview is the nicer
-  interaction, but it's mouse-only — click/tap is what makes this work on
+  interaction, but it's mouse-only: click/tap is what makes this work on
   touch, where hover doesn't meaningfully exist, and via keyboard. A
   pinned selection survives the pointer leaving; an un-pinned hover
   reverts on mouseleave.
@@ -640,7 +545,7 @@ function setupSkillsCrossHighlight() {
   let pinned = null;
 
   function paint(activeTitle) {
-    // No active project means no filtering at all — every chip back to
+    // No active project means no filtering at all, every chip back to
     // full strength, rather than everything dimmed equally.
     grid.classList.toggle("is-filtering", Boolean(activeTitle));
 
@@ -651,7 +556,7 @@ function setupSkillsCrossHighlight() {
 
     buttons.forEach((button) => {
       button.classList.toggle("is-active", button.dataset.project === activeTitle);
-      // Reflects the PINNED state only, not the transient hover preview —
+      // Reflects the PINNED state only, not the transient hover preview,
       // aria-pressed describes what's actually selected, and flipping it
       // on hover would announce selections that were never made.
       button.setAttribute("aria-pressed", String(button.dataset.project === pinned));
@@ -662,7 +567,7 @@ function setupSkillsCrossHighlight() {
     const title = button.dataset.project;
 
     button.addEventListener("click", () => {
-      // Clicking the pinned project again clears it — without this the
+      // Clicking the pinned project again clears it, without this the
       // filter would be a one-way trip with no way back to the full list.
       pinned = pinned === title ? null : title;
       paint(pinned);
@@ -686,7 +591,7 @@ function setupSkillsCrossHighlight() {
 
   Strictly an enhancement. The form in index.html has a real action and
   method, so with JavaScript off or broken it still posts normally and
-  Formspree handles it — this only intercepts once it's confirmed it can
+  Formspree handles it: this only intercepts once it's confirmed it can
   do the job properly.
 */
 function setupContactForm() {
@@ -698,14 +603,13 @@ function setupContactForm() {
   if (!status || !submitButton) return;
 
   // fetch and FormData are what this relies on. Anything without them
-  // gets the native form post, which works fine — better that than
+  // gets the native form post, which works fine: better that than
   // intercepting the submit and then failing to send it.
   if (!("fetch" in window) || !("FormData" in window)) return;
 
   // The endpoint is wired up (Formspree form xlgqkeyo), so this guard
   // shouldn't fire. Kept as a safety net: if the action is ever reset to
-  // a placeholder — copying this file as a starting point for another
-  // site is the likely way — the form says so instead of posting to a
+  // a placeholder (copying this file as a starting point for another // site is the likely way) the form says so instead of posting to a
   // dead URL and reporting a generic failure that looks like a bug.
   const PLACEHOLDER = "YOUR_FORM_ID";
   const originalLabel = submitButton.textContent;
@@ -718,7 +622,7 @@ function setupContactForm() {
 
   form.addEventListener("submit", (event) => {
     // Let the browser run its own validation first. If it fails, do
-    // nothing — the native messages are already accessible and
+    // nothing: the native messages are already accessible and
     // localised, and duplicating them here would just be noise.
     if (!form.checkValidity()) return;
 
@@ -729,7 +633,7 @@ function setupContactForm() {
     // failure, which looks like a bug rather than an unfinished setup.
     if (form.action.includes(PLACEHOLDER)) {
       setStatus(
-        "This form isn't connected yet — please use the email address below in the meantime.",
+        "This form isn't connected yet. Please use the email address below in the meantime.",
         "error"
       );
       return;
@@ -749,11 +653,11 @@ function setupContactForm() {
       .then((response) => {
         if (!response.ok) throw new Error(`Form endpoint returned ${response.status}`);
         form.reset();
-        setStatus("Thanks — message sent. I'll get back to you within a day.", "success");
+        setStatus("Thanks, message sent. I'll get back to you within a day.", "success");
       })
       .catch((error) => {
         console.error("TRP site: contact form submission failed.", error);
-        // Names the fallback rather than just reporting failure — a dead
+        // Names the fallback rather than just reporting failure: a dead
         // end here costs a real enquiry.
         setStatus(
           "Something went wrong sending that. Please email TravisPeakman@outlook.com instead.",
@@ -765,6 +669,23 @@ function setupContactForm() {
         submitButton.textContent = originalLabel;
       });
   });
+}
+
+/* ---- Footer year ------------------------------------------------------------------- */
+
+/*
+  Keeps the footer copyright year current.
+
+  The markup ships with the correct year already written in, so this only
+  ever overwrites it with the same value until January rolls over, with
+  JavaScript off the footer is still correct, it just stops updating. A
+  hard-coded year on a site nobody edits for a year is the kind of thing
+  that quietly dates a portfolio.
+*/
+function setupFooterYear() {
+  const target = document.querySelector("[data-current-year]");
+  if (!target) return;
+  target.textContent = String(new Date().getFullYear());
 }
 
 /* ---- Mobile nav toggle ------------------------------------------------------------ */
@@ -797,7 +718,7 @@ function setupActiveSectionNav() {
 
   // Only the plain section links (Work, What I Do, Process, Skills,
   // About) count as steps along the nav-progress route (see
-  // setupNavProgress() and .nav-progress in css/layout.css) — Contact
+  // setupNavProgress() and .nav-progress in css/layout.css): Contact
   // is a CTA button, not a stop along the route, even though it's also
   // a .main-nav__link with a matching #contact section. .btn is what
   // distinguishes it from the plain links.
@@ -819,7 +740,7 @@ function setupActiveSectionNav() {
           if (activeRouteLink) {
             // Measures the active link's real right edge against the
             // track's real width, rather than dividing evenly into
-            // fifths — an equal 1/5, 2/5, ... split ignores that the
+            // fifths: an equal 1/5, 2/5, ... split ignores that the
             // links are all different widths (gap is a responsive
             // clamp() too), so it overshot past shorter words like
             // "Work" into the gap toward the next link (confirmed in
@@ -833,7 +754,7 @@ function setupActiveSectionNav() {
             }
           } else if (id === "contact") {
             // Contact is the end of the route, not a stop along it, so
-            // it isn't in routeLinks — but the line should still travel
+            // it isn't in routeLinks, but the line should still travel
             // the whole way to it. The track now ends at the Contact
             // button's left edge (setupNavProgress), so a full fill
             // arrives exactly at the button.
@@ -844,11 +765,11 @@ function setupActiveSectionNav() {
             progressFill.style.width = "100%";
           } else {
             // The intersecting section isn't one of the 5 tracked
-            // stops — the hero (id="top") is also inside <main
+            // stops: the hero (id="top") is also inside <main
             // section[id]> and gets observed, but no nav link points
             // to #top, so this branch previously just never ran and
             // the fill was left showing whatever it was at last (Work,
-            // stuck lit even back at the very top of the page —
+            // stuck lit even back at the very top of the page,
             // confirmed in testing). Reset it explicitly instead of
             // leaving it stale.
             progressFill.style.width = "0%";
@@ -867,7 +788,7 @@ function setupActiveSectionNav() {
 /*
   Positions/sizes .nav-progress (the dashed track under the plain nav
   links) to span exactly from the left edge of "Work" to the right edge
-  of "About", in real pixels measured at runtime — the nav's gap is a
+  of "About", in real pixels measured at runtime: the nav's gap is a
   responsive clamp(), so a fixed CSS width or percentage would drift
   out of sync with the actual link positions across breakpoints/resize,
   the same reason the hero glow and waypoint button rings are measured
@@ -882,7 +803,7 @@ function setupNavProgress() {
   const firstLink = document.querySelector('.main-nav__link[href="#work"]');
   // The track now runs to the CONTACT button rather than stopping at
   // About. Contact is the end of the route, so the line should be able to
-  // reach it — previously the fill had nowhere left to go once you passed
+  // reach it: previously the fill had nowhere left to go once you passed
   // About, and reset to nothing at the very moment the journey finished.
   //
   // Measured to the button's LEFT edge, so a full fill arrives at the
@@ -914,7 +835,7 @@ function setupNavProgress() {
 /*
   Content is visible by default (see .reveal in css/global.css). This
   function only ever ADDS the "reveal--pending" class that opts an element
-  into the hide-then-fade-in animation — it never removes visibility. If
+  into the hide-then-fade-in animation: it never removes visibility. If
   this function never runs at all (script error earlier, JS disabled), every
   section is still fully visible because nothing hid it in the first place.
 */
@@ -931,7 +852,7 @@ function setupScrollReveal() {
   // Two behaviours from one observer.
   //
   // Default: reveal once, then stop watching. Most of the page should
-  // settle and stay settled — re-animating an About paragraph every time
+  // settle and stay settled, re-animating an About paragraph every time
   // it scrolls past would be noise, not polish.
   //
   // Opt-in via .reveal--repeat: re-arm on the way out so the element
@@ -965,12 +886,12 @@ function setupScrollReveal() {
 /* ---- Hero route glow ------------------------------------------------------------------ */
 
 /*
-  Drives .hero__scene::after (route reveal) and ::before (peak pulse) —
+  Drives .hero__scene::after (route reveal) and ::before (peak pulse),
   see css/layout.css.
 
   Both are positioned by mapping fixed PIXEL COORDINATES from the actual
   source image (trp-hero-scene-wide.webp / trp-hero-route-mask.png, both
-  1672x941 — see HERO_IMAGE_SIZE) onto wherever that image currently lands
+  1672x941, see HERO_IMAGE_SIZE) onto wherever that image currently lands
   on screen, via mapImagePointToBox() below. getHeroBackgroundConfig()
   mirrors the exact background-size/background-position breakpoints
   already defined on .hero__scene in css/layout.css (639px / 1600px /
@@ -985,7 +906,7 @@ function setupScrollReveal() {
   underneath it at a breakpoint, so it drifted off the actual marker).
 
   NOTE: getHeroBackgroundConfig()'s breakpoint values are a hand-kept
-  mirror of the media queries on .hero__scene in css/layout.css — if
+  mirror of the media queries on .hero__scene in css/layout.css: if
   those breakpoints or values change, update both places.
 */
 
@@ -997,7 +918,7 @@ const HERO_IMAGE_SIZE = { width: 1672, height: 941 };
 // pixels in trp-hero-route-mask.png; and the peak marker's bullseye
 // center, found directly in trp-hero-scene-wide.png/webp by isolating the
 // small solid dot at its center (not the soft glow halo around it, which
-// sits lower and further left — an earlier version of this constant
+// sits lower and further left: an earlier version of this constant
 // measured the halo by mistake, which is why the CSS pulse used to drift
 // toward the rock face instead of sitting on the marker).
 const HERO_FEET_PX = { x: 848, y: 864 };
@@ -1008,7 +929,7 @@ const HERO_PEAK_PX = { x: 1364, y: 57 };
   css/layout.css, keyed off the same viewport-width breakpoints those
   media queries use (639px / 1600px / 1900px). Kept as an explicit mirror
   rather than reading getComputedStyle().backgroundSize/backgroundPosition
-  back out of the browser — those can come back in different forms
+  back out of the browser: those can come back in different forms
   depending on the browser (resolved to px vs. left as percentages,
   possibly other formats for edge/corner keywords), which isn't something
   that could be verified without a real browser to test against. Matching
@@ -1046,7 +967,7 @@ function mapImagePointToBox(el, imgX, imgY) {
   let dispW;
   let dispH;
   if (config.size === "auto-height") {
-    // background-size: auto 100% — height fills the box, width scales
+    // background-size: auto 100%: height fills the box, width scales
     // proportionally and is left to overflow/crop.
     dispH = boxH;
     dispW = boxH * (naturalW / naturalH);
@@ -1082,13 +1003,13 @@ function setupHeroRouteDraw() {
   // rounds, which also controlled the mask's own visual fade width at
   // the time. Both have since been undone: the mask fade is a small
   // fixed 10px now instead of reading this at all (a wide soft fade
-  // turned out to make the leading edge HARDER to catch, not easier —
+  // turned out to make the leading edge HARDER to catch, not easier,
   // see .hero__scene::after in css/layout.css), and this value itself
   // was reverted back to its original 90, explicitly requested ("I
   // wanna go back to the way it was before we made those changes").
   // BAND_PX now only sets how far past the peak's position the sweep
   // has to travel before the peak marker counts as "reached" (see
-  // peakFullyLitAt below) — that timing logic was never part of what
+  // peakFullyLitAt below): that timing logic was never part of what
   // the user was unhappy with, so it's unaffected by this revert.
   const BAND_PX = 90;
   let revealComplete = false;
@@ -1096,7 +1017,7 @@ function setupHeroRouteDraw() {
 
   // Re-pins the peak-glow dot (always) and, once the initial reveal has
   // finished, keeps the sweep's circle comfortably covering the whole
-  // box too — so a resize or zoom after load can't leave either one
+  // box too, so a resize or zoom after load can't leave either one
   // drifted or clipped.
   function repositionForCurrentLayout() {
     const peak = mapImagePointToBox(scene, HERO_PEAK_PX.x, HERO_PEAK_PX.y);
@@ -1119,7 +1040,7 @@ function setupHeroRouteDraw() {
   // ResizeObserver fires as .hero__scene's own box actually changes size
   // (browsers coalesce it to roughly once per frame on their own), so it
   // tracks a zoom step tightly enough that there's no gap left for a
-  // transition to paper over — see the CSS comment on .hero__scene::before
+  // transition to paper over, see the CSS comment on .hero__scene::before
   // for why the left/top transition was removed once this was in place.
   if ("ResizeObserver" in window) {
     new ResizeObserver(repositionForCurrentLayout).observe(scene);
@@ -1133,13 +1054,13 @@ function setupHeroRouteDraw() {
 
   // A more emphatic "arrival" version of this (a few bigger pulses via a
   // temporary is-peak-arriving class before settling into the loop
-  // .is-peak-lit alone runs) was tried and reverted — it read as too
+  // .is-peak-lit alone runs) was tried and reverted: it read as too
   // abrupt. Back to just adding is-peak-lit, same as before.
   function markPeakLit() {
     scene.classList.add("is-peak-lit");
   }
 
-  // Runs the full reveal from scratch — re-measures feet/peak every
+  // Runs the full reveal from scratch: re-measures feet/peak every
   // time rather than once at setup, since this can now run again after
   // a resize that happened while the hero was scrolled out of view (see
   // the IntersectionObserver below).
@@ -1174,13 +1095,13 @@ function setupHeroRouteDraw() {
     isAnimating = true;
 
     // The circle is fully solid (no longer fading) out to sweep-r minus
-    // the band width — so the peak marker is completely lit once the
+    // the band width, so the peak marker is completely lit once the
     // radius reaches this far past it. Triggering the pulse off this
     // measured value, rather than off a fixed delay guessed to line up
     // with a fixed 8s duration, is what keeps it in sync: targetRadius
     // (and so how much of the 8s is "real" travel vs. margin past the
     // peak) depends on the feet-to-peak distance, which is different at
-    // every viewport — a fixed delay could only ever be correct for one
+    // every viewport: a fixed delay could only ever be correct for one
     // specific distance.
     const peakFullyLitAt = distance + BAND_PX;
     let peakLit = false;
@@ -1218,7 +1139,7 @@ function setupHeroRouteDraw() {
 
   // Replays the whole reveal whenever the hero scrolls back into view
   // after having left it at least once. The one-and-only playback on
-  // page load is easy to miss entirely — a first-time visitor's eyes are
+  // page load is easy to miss entirely: a first-time visitor's eyes are
   // very likely on the headline text (left side, normal reading
   // position) during that initial ~8s window, not the mountain scene on
   // the right (confirmed informally: "she didn't really notice the
@@ -1226,7 +1147,7 @@ function setupHeroRouteDraw() {
   // first visit or return, that this gives most visitors another chance
   // to actually see it. hasLeftView guards against the observer's very
   // first callback (which fires immediately with whatever the current
-  // state already is — true, since the hero is normally in view on
+  // state already is: true, since the hero is normally in view on
   // load) replaying it a second time right away.
   if (heroSection && "IntersectionObserver" in window && !prefersReducedMotion) {
     let hasLeftView = false;
@@ -1256,14 +1177,14 @@ function setupHeroRouteDraw() {
   clip-path. Three rounds of hand-computed clip-path polygons (an
   evenodd hole on the text-bearing element, then a two-element inset
   version, then a self-contained evenodd ::after) each fixed one problem
-  and introduced or left another — most persistently, a visible break at
+  and introduced or left another: most persistently, a visible break at
   the chamfered top-left corner. A native SVG stroke doesn't have that
   failure mode at all: the browser's own line-join logic (miter by
   default) handles the corner correctly, so there's no inset math to get
   slightly wrong.
 
   The <svg> is a SIBLING of the button (both inside a plain .btn__wrap),
-  not a child of it — a first version nested it inside the button and
+  not a child of it: a first version nested it inside the button and
   the button's own clip-path clipped the ring right along with
   everything else it's an ancestor of, against a boundary that didn't
   quite match the ring's own stroke, reintroducing a corner mismatch by
@@ -1298,7 +1219,7 @@ function setupWaypointRings() {
       // btn are expected to be the same size (wrap is an inline-flex
       // with btn as its only in-flow child), but drawing the viewBox
       // and path against whichever box the svg is actually rendered at
-      // guarantees a 1:1 pixel mapping regardless — measuring btn
+      // guarantees a 1:1 pixel mapping regardless, measuring btn
       // instead left the ring visibly larger than the button whenever
       // the two boxes weren't pixel-identical (confirmed in testing).
       const w = wrap.clientWidth;
