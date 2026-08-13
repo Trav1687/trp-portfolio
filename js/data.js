@@ -230,10 +230,28 @@ const projects = [
       "Repeatable production workflow",
       "AI-assisted creative process"
     ],
-    image: "assets/images/ancient-sleep-lore/ancient-sleep-lore-main-card.png",
-    imageAlt: "Ancient Sleep Lore brand and channel visual system",
-    imageWidth: 1515,
-    imageHeight: 989,
+    image: "assets/images/ancient-sleep-lore/ancient-sleep-lore-main-card.webp",
+    imageAlt:
+      "Three Ancient Sleep Lore video thumbnails showing one visual system: gold and white serif titles, laurel ornaments, and moonlit Roman ruins",
+    // Replaced 2026-08-12 with the channel's three real thumbnails, laid
+    // out two over one. The thumbnails ARE the design work this card
+    // describes, so they are the evidence, not a stand-in for it. Seen
+    // together the system is obvious: same type lockup, same ornament,
+    // same palette, same subtitle position.
+    //
+    // Titles and view counts were cropped away. The card claims a brand
+    // and content system, not an audience, and its three proof points are
+    // all about how the channel was built and run rather than how many
+    // people watch. Including view counts would invite a judgement on a
+    // claim the card never makes.
+    //
+    // Duration badges were kept: 36 to 50 minutes tells a viewer this is
+    // long-form sleep content, which supports the description. YouTube's
+    // red watched-progress bars were trimmed off the bottom of two
+    // thumbnails, with the sides trimmed to match so the 16:9 ratio held
+    // rather than stretching what was left.
+    imageWidth: 1400,
+    imageHeight: 840,
     // Fifth and final destination. The channel IS the artifact here:
     // thumbnails, titles and visual identity are the design work this
     // card describes, and a grid of them is more convincing than any
