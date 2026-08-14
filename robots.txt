@@ -1,12 +1,10 @@
 # robots.txt for the TRP portfolio
 #
-# TODO (before launch): replace PLACEHOLDER-DOMAIN.com in the Sitemap line
-# below with the final domain. The Sitemap directive is the one thing here
-# that has to be an absolute URL; everything else is path-relative and works
-# on any host.
+# The Sitemap directive at the bottom is the one thing here that has to be an
+# absolute URL; everything else is path-relative and works on any host.
 #
-# This file previously contained only that TODO comment and no directives at
-# all, which meant crawlers got no instructions and, more importantly, had no
+# This file previously contained only a TODO comment and no directives at all,
+# which meant crawlers got no instructions and, more importantly, had no
 # pointer to the sitemap.
 
 User-agent: *
@@ -27,4 +25,4 @@ Allow: /
 # advertise it to anyone who reads this file, which is the opposite of the
 # intent.
 
-Sitemap: https://PLACEHOLDER-DOMAIN.com/sitemap.xml
+Sitemap: https://travispeakman.ca/sitemap.xml
