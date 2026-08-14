@@ -660,7 +660,7 @@ function setupContactForm() {
         // Names the fallback rather than just reporting failure: a dead
         // end here costs a real enquiry.
         setStatus(
-          "Something went wrong sending that. Please email TravisPeakman@outlook.com instead.",
+          "Something went wrong sending that. Please email travis@travispeakman.ca instead.",
           "error"
         );
       })
