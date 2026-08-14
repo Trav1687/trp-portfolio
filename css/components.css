@@ -692,6 +692,7 @@
   /* Deep Navy at 80%, matching the Process and About cards, same fill,
      same Soft Sand ring, so every card sitting on the topo map is one
      component. Was Slate Blue Grey at 90%. */
+  --card-bg: rgba(20, 33, 61, 0.8);
   --card-bg: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
   --card-fg: var(--color-warm-off-white);
   color: var(--card-fg);
@@ -1874,6 +1875,7 @@
   position: absolute;
   z-index: -1;
   inset: 0;
+  background: rgba(20, 33, 61, 0.8);
   background: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
   clip-path: polygon(
     calc(var(--card-chamfer) + 0.83px) 2px,
@@ -2052,6 +2054,7 @@
   color: var(--color-warm-off-white);
   /* Deep Navy at 55%, so the topo map still reads faintly behind the
      inputs the way it does through the cards elsewhere on the page. */
+  background: rgba(20, 33, 61, 0.55);
   background: color-mix(in srgb, var(--color-deep-navy) 55%, transparent);
   border: 1px solid rgba(216, 203, 181, 0.45);
   /* Chamfered bottom-right, matching the cut-corner language used by the
@@ -2109,6 +2112,7 @@
 .contact-form__field select:focus,
 .contact-form__field textarea:focus {
   border-color: var(--color-accent);
+  background: rgba(20, 33, 61, 0.75);
   background: color-mix(in srgb, var(--color-deep-navy) 75%, transparent);
 }
 
@@ -2336,6 +2340,7 @@
   position: absolute;
   z-index: -1;
   inset: 0;
+  background: rgba(20, 33, 61, 0.8);
   background: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
   clip-path: polygon(
     calc(var(--card-chamfer) + 0.83px) 2px,

@@ -58,6 +58,11 @@ section {
   z-index: 50;
   /* Dark header is the primary direction now, see FIX/summary notes. */
   background: rgba(20, 33, 61, 0.92);
+  /* -webkit- first: Safari has never shipped backdrop-filter unprefixed,
+     so without this the sticky header simply loses its blur on every Apple
+     device. It degrades to the flat 92% navy above, which is readable, but
+     the effect was doing real work separating the header from the hero. */
+  -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--color-slate-blue-grey);
 }
@@ -1069,6 +1074,7 @@ section {
   position: absolute;
   z-index: -1;
   inset: 0;
+  background: rgba(20, 33, 61, 0.8);
   background: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
   clip-path: polygon(
     calc(var(--card-chamfer) + 0.83px) 2px,
@@ -1420,6 +1426,7 @@ section {
   position: absolute;
   z-index: -1;
   inset: 0;
+  background: rgba(20, 33, 61, 0.8);
   background: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
   clip-path: polygon(
     calc(var(--card-chamfer) + 0.83px) 2px,
@@ -1600,6 +1607,7 @@ section {
   position: absolute;
   z-index: -1;
   inset: 0;
+  background: rgba(20, 33, 61, 0.8);
   background: color-mix(in srgb, var(--color-deep-navy) 80%, transparent);
   clip-path: polygon(
     calc(var(--card-chamfer) + 0.83px) 2px,
@@ -1696,6 +1704,7 @@ section {
      Slate Blue Grey: under the 4.5 needed at this text size. Blended
      30% toward Warm Off-White it clears at 4.72:1 while staying clearly
      quieter than the status line above it. */
+  color: rgb(226, 216, 199);
   color: color-mix(in srgb, var(--color-soft-sand) 70%, var(--color-warm-off-white));
 }
 
@@ -1747,6 +1756,7 @@ section {
   margin-bottom: 0;
   font-size: var(--fs-small);
   /* Same blend and same reason as .contact__facts above. */
+  color: rgb(226, 216, 199);
   color: color-mix(in srgb, var(--color-soft-sand) 70%, var(--color-warm-off-white));
 }
 
