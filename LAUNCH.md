@@ -98,7 +98,7 @@ below has a free tier that covers this comfortably, deploys straight from
 GitHub, and issues HTTPS certificates automatically:
 
 - **Netlify** — simplest custom-domain setup of the three.
-- **Vercel** — already in your stack, since Table Tracker deploys there.
+- **Vercel** — already in your stack, since TableTrack deploys there.
 - **Cloudflare Pages** — fastest, slightly more configuration.
 
 Any is fine. Pick one and stop comparing.

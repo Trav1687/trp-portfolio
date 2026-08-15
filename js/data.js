@@ -41,7 +41,7 @@
   - Nothing invented: no metrics, results, testimonials, or claims that
     aren't already true of these projects (a standing project rule).
 
-  - Table Tracker was rewritten on 2026-08-12 and the correction is worth
+  - TableTrack was rewritten on 2026-08-12 and the correction is worth
     recording, because it ran the opposite way to the usual portfolio
     failure. This card called it "a product concept... scoped from user
     flows down to a focused MVP" and its CTA was a disabled placeholder.
@@ -113,7 +113,7 @@ const projects = [
     // Reframed rather than cropped. The source capture is 916x893, nearly
     // square, and cropping it to 5:3 would have meant discarding 343px of
     // height and then upscaling the remainder 1.5x, which is exactly the
-    // softness that made the old Table Tracker image look broken. Scaling
+    // softness that made the old TableTrack image look broken. Scaling
     // to fill the height instead is a DOWNSCALE (893 -> 772), so it stays
     // sharp, and the screenshot sits on a dark field taking about 57% of
     // the card width.
@@ -184,7 +184,7 @@ const projects = [
   },
   {
     number: "04",
-    title: "Table Tracker",
+    title: "TableTrack",
     tags: ["Web App", "React + Ionic", "TypeScript", "Supabase / Postgres"],
     description:
       "A live mobile-first app for tracking a Magic: The Gathering playgroup's game nights, decks and standings, on a Supabase Postgres backend with no accounts to sign up for.",
@@ -193,9 +193,9 @@ const projects = [
       "Join-code access, no login required",
       "Row-level security on every table"
     ],
-    image: "assets/images/table-tracker/table-tracker-main-card.webp",
+    image: "assets/images/tabletrack/tabletrack-main-card.webp",
     imageAlt:
-      "Table Tracker on three phone screens: the playgroup overview, the standings leaderboard, and the log-a-game form",
+      "TableTrack on three phone screens: the playgroup overview, the standings leaderboard, and the log-a-game form",
     // Replaced 2026-08-12. The old file was a 398x359 PNG, smaller than
     // the ~508px the card actually renders it at, so it was being
     // upscaled and looked soft.
@@ -329,13 +329,13 @@ const skillGroups = [
   {
     title: "Design",
     items: [
-      { name: "Figma", projects: ["Table Tracker", "Ancient Sleep Lore"] },
-      { name: "FigJam", projects: ["Table Tracker"] },
-      { name: "Wireframes", projects: ["Mountainside Millwork", "Table Tracker"] },
-      { name: "UI Design", projects: ["Mountainside Millwork", "Arcane Vault", "Table Tracker"] },
+      { name: "Figma", projects: ["TableTrack", "Ancient Sleep Lore"] },
+      { name: "FigJam", projects: ["TableTrack"] },
+      { name: "Wireframes", projects: ["Mountainside Millwork", "TableTrack"] },
+      { name: "UI Design", projects: ["Mountainside Millwork", "Arcane Vault", "TableTrack"] },
       { name: "Responsive Layouts", projects: ["Mountainside Millwork", "Arcane Vault"] },
       { name: "Design Systems", projects: ["Ancient Sleep Lore"] },
-      { name: "Prototyping", projects: ["Table Tracker"] }
+      { name: "Prototyping", projects: ["TableTrack"] }
     ]
   },
   {
@@ -345,8 +345,8 @@ const skillGroups = [
       { name: "CSS", projects: ["Mountainside Millwork", "Arcane Vault"] },
       { name: "JavaScript", projects: ["Mountainside Millwork", "Arcane Vault"] },
       { name: "Angular", projects: ["Mountainside Millwork", "Arcane Vault"] },
-      { name: "React", projects: ["Table Tracker"] },
-      { name: "TypeScript", projects: ["Table Tracker"] },
+      { name: "React", projects: ["TableTrack"] },
+      { name: "TypeScript", projects: ["TableTrack"] },
       { name: "Responsive Development", projects: ["Mountainside Millwork", "Arcane Vault"] },
       { name: "Components", projects: ["Mountainside Millwork", "Arcane Vault"] },
       { name: "Accessibility", projects: ["Mountainside Millwork"] }
@@ -358,8 +358,8 @@ const skillGroups = [
       { name: "APIs", projects: ["Arcane Vault"] },
       { name: "Node + Express", projects: ["Arcane Vault"] },
       { name: "MySQL", projects: ["Arcane Vault"] },
-      { name: "Supabase / Postgres", projects: ["Table Tracker"] },
-      { name: "Database Security (RLS)", projects: ["Table Tracker"] },
+      { name: "Supabase / Postgres", projects: ["TableTrack"] },
+      { name: "Database Security (RLS)", projects: ["TableTrack"] },
       { name: "Data Structures", projects: ["Arcane Vault", "ValorBot"] },
       { name: "Admin Workflows", projects: ["Arcane Vault"] }
     ]
@@ -374,11 +374,11 @@ const skillGroups = [
           "Mountainside Millwork",
           "Arcane Vault",
           "ValorBot",
-          "Table Tracker",
+          "TableTrack",
           "Ancient Sleep Lore"
         ]
       },
-      { name: "Testing", projects: ["Mountainside Millwork", "ValorBot", "Table Tracker"] },
+      { name: "Testing", projects: ["Mountainside Millwork", "ValorBot", "TableTrack"] },
       { name: "Debugging", projects: ["Arcane Vault", "ValorBot"] },
       { name: "Documentation", projects: ["Arcane Vault", "ValorBot"] }
     ]
